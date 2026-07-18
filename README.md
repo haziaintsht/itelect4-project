@@ -1,17 +1,22 @@
-# Complaint Impact
+# Peer Tutoring Booking Platform
 
-A web-based complaint management and record system developed for the LTO Lipa Regional Office and the Lipa Traffic Management and Transport Office. It is designed to handle complaints specifically involving registered tricycle operators and drivers, as tricycles are a common form of public transport in Lipa City. 
+A simple semester-ready web app for connecting tutors and tutees through session requests, booking statuses, and tutor profiles. The project demonstrates a list-to-detail experience, role-based users, a multi-step booking lifecycle, a live activity counter, and a simple generative-text feature for study suggestions.
 
-The system features an administrative dashboard for authorized personnel to track records, while tricycle operators are notified of complaints via SMS. The platform operates locally without integrating with national LTO databases or external systems, serving as an internal digital tool for authorized staff.
+## Project Highlights
+- **Core Entities**: `User`, `Session`, and `Booking`
+- **Roles**: `tutor` and `tutee`
+- **Booking Lifecycle**: `requested -> confirmed -> completed`
+- **Live Feature**: automatic activity counter updates
+- **Generative Text**: AI-style study tip generation
 
-## Blueprints Defined (`types/index.ts`)
-- **Core Entities**: `User` (System roles), `Tricycle` (Vehicle registries), `Complaint` (Log files)
-- **Generic Interface**: `ApiResponse<T>` (Flexible backend data transport shell)
-- **Utility Mapped Types**: `ComplaintUpdate` (`Partial<T>`), `PublicTricycleView` (`Omit<T,K>`), `StatusCounts` (`Record<K,T>`)
-- **Enums**: `ComplaintStatus` (Regular Enum), `Role` (Const Enum)
+## Installation
 
-## Installation & Execution Setup
-
-1. Install project dependencies:
+1. Install dependencies:
    ```bash
    npm install
+   ```
+
+2. Run the TypeScript build:
+   ```bash
+   npm run build
+   ```
