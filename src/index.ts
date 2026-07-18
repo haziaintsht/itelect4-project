@@ -1,18 +1,17 @@
-import type { 
-    User, 
-    Tricycle, 
-    Complaint, 
-    StringOrNumber, 
+import type {
+    User,
+    Session,
+    Booking,
+    StringOrNumber,
     ApiResponse,
-    ComplaintUpdate, 
-    PublicTricycleView, 
-    StatusCounts 
+    SessionUpdate,
+    PublicTutorView,
+    StatusCounts
 } from "./types/index";
 
-import { ComplaintStatus, Role } from "./types/index";
+import { BookingStatus, SessionType, UserRole } from "./types/index";
 
-// ===== PRIMITIVE TYPE ANNOTATIONS =====
-const projectName: string = "Complaint Impact";
+const projectName: string = "Peer Tutoring Booking Platform";
 const currentYear: number = 2026;
 const isFullStack: boolean = true;
 
@@ -21,75 +20,73 @@ function greetProject(name: string, year: number): string {
 }
 console.log(greetProject(projectName, currentYear));
 
-// ===== SAMPLE DATA =====
-const officer: User = {
+const tutor: User = {
     id: 1,
-    name: "Lance Fedelicio",
-    email: "lance@example.com",
-    role: Role.Admin,
+    name: "Mina Santos",
+    email: "mina@example.com",
+    role: UserRole.TUTOR,
+    bio: "Calculus and coding mentor",
+    skills: ["Calculus", "TypeScript"],
     isActive: true,
 };
 
-const tricycleRecord: Tricycle = {
+const session: Session = {
     id: 101,
-    plateNumber: "LP-1234",
-    operatorName: "Juan dela Cruz",
-    phoneNumber: "09171234567"
+    title: "Calculus Crash Course",
+    subject: "Calculus",
+    description: "Session for midterm prep.",
+    tutorId: 1,
+    status: BookingStatus.REQUESTED,
+    createdAt: new Date(),
+    sessionType: SessionType.ONE_ON_ONE,
+    meetingLink: "https://meet.example.com/calc"
 };
 
-const activeComplaint: Complaint = {
-    id: 995,
-    tricycleId: 101,
-    complainantName: "Maria Santos",
-    issueDescription: "Overcharging fare beyond standard city matrices.",
-    status: ComplaintStatus.PENDING,
-    filedAt: new Date()
+const booking: Booking = {
+    id: 201,
+    sessionId: 101,
+    tuteeId: 2,
+    tutorId: 1,
+    status: BookingStatus.REQUESTED,
+    requestedAt: new Date(),
+    note: "Need help with derivatives before the exam."
 };
 
-// ===== GENERIC FUNCTIONS =====
-// Safe lookups for any entity array containing an ID
 function getById<T extends { id: number }>(items: T[], id: number): T | undefined {
     return items.find((item) => item.id === id);
 }
 
-const foundTricycle = getById<Tricycle>([tricycleRecord], 101);
-console.log(`Found Tricycle Operator: ${foundTricycle?.operatorName}`);
+const foundTutor = getById<User>([tutor], 1);
+console.log(`Found Tutor: ${foundTutor?.name}`);
 
-// ===== GENERIC API RESPONSE =====
-const complaintResponse: ApiResponse<Complaint> = {
+const sessionResponse: ApiResponse<Session> = {
     success: true,
-    message: "Complaint details loaded.",
-    data: activeComplaint
+    message: "Session loaded.",
+    data: session
 };
-console.log(`Complaint Issue: ${complaintResponse.data.issueDescription}`);
+console.log(`Session Topic: ${sessionResponse.data.subject}`);
 
-// ===== USING UTILITY TYPES =====
-// 1. Partial: Modifying complaint status
-const updatePayload: ComplaintUpdate = { status: ComplaintStatus.RESOLVED };
+const updatePayload: SessionUpdate = { status: BookingStatus.CONFIRMED };
 
-// 2. Omit: Showing safe public tricycle data
-const publicView: PublicTricycleView = {
-    id: 101,
-    plateNumber: "LP-1234",
-    operatorName: "Juan dela Cruz"
+const publicView: PublicTutorView = {
+    id: 1,
+    name: "Mina Santos",
+    role: UserRole.TUTOR,
+    bio: "Calculus and coding mentor",
+    skills: ["Calculus", "TypeScript"],
+    isActive: true
 };
 
-// 3. Record: Dashboard widget analytics
 const counts: StatusCounts = {
-    [ComplaintStatus.PENDING]: 12,
-    [ComplaintStatus.RESOLVED]: 45,
-    [ComplaintStatus.REJECTED]: 3
+    [BookingStatus.REQUESTED]: 3,
+    [BookingStatus.CONFIRMED]: 2,
+    [BookingStatus.COMPLETED]: 1
 };
 
-// ===== ReturnType =====
-function generateSMSNotice(operatorName: string, plate: string) {
-    return {
-        recipient: operatorName,
-        message: `Notice: A complaint has been logged against tricycle ${plate}. Please report to the office.`,
-        sentAt: new Date()
-    };
+function generateSessionNote(subject: string, tutorName: string): string {
+    return `Suggested note: ${tutorName} can help you strengthen ${subject} with a short practice set.`;
 }
 
-type SMSPayload = ReturnType<typeof generateSMSNotice>;
-const notification: SMSPayload = generateSMSNotice(tricycleRecord.operatorName, tricycleRecord.plateNumber);
-console.log("Generated Notice:", notification.message);
+type SessionNote = ReturnType<typeof generateSessionNote>;
+const note: SessionNote = generateSessionNote(session.subject, tutor.name);
+console.log(note);

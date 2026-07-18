@@ -1,13 +1,18 @@
 // ===== ENUMS =====
-export enum ComplaintStatus {
-    PENDING = "PENDING",
-    RESOLVED = "RESOLVED",
-    REJECTED = "REJECTED"
+export enum UserRole {
+    TUTOR = "tutor",
+    TUTEE = "tutee"
 }
 
-export const enum Role {
-    Admin = "admin",
-    Officer = "officer"
+export enum BookingStatus {
+    REQUESTED = "requested",
+    CONFIRMED = "confirmed",
+    COMPLETED = "completed"
+}
+
+export enum SessionType {
+    ONE_ON_ONE = "one-on-one",
+    GROUP = "group"
 }
 
 // ===== INTERFACES (The 3 Core Entities) =====
@@ -15,31 +20,40 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    role: Role; 
+    role: UserRole;
+    bio: string;
+    skills: string[];
     isActive: boolean;
 }
 
-export interface Tricycle {
+export interface Session {
     id: number;
-    plateNumber: string;
-    operatorName: string;
-    phoneNumber: string; // Used for SMS notifications
+    title: string;
+    subject: string;
+    description: string;
+    tutorId: number;
+    tuteeId?: number;
+    status: BookingStatus;
+    createdAt: Date;
+    sessionType: SessionType;
+    meetingLink: string;
 }
 
-export interface Complaint {
+export interface Booking {
     id: number;
-    tricycleId: number;
-    complainantName: string;
-    issueDescription: string;
-    status: ComplaintStatus;
-    filedAt: Date;
+    sessionId: number;
+    tuteeId: number;
+    tutorId: number;
+    status: BookingStatus;
+    requestedAt: Date;
+    note: string;
 }
 
 // ===== TYPE ALIASES & UNIONS =====
 export type ID = number | string;
 export type StringOrNumber = string | number;
 
-// ===== GENERIC INTERFACE (The Delivery Box) =====
+// ===== GENERIC INTERFACE =====
 export interface ApiResponse<T> {
     success: boolean;
     data: T;
@@ -47,11 +61,6 @@ export interface ApiResponse<T> {
 }
 
 // ===== UTILITY TYPES =====
-// Partial - Perfect for updating a complaint's status or details
-export type ComplaintUpdate = Partial<Complaint>;
-
-// Omit - Strip out phone numbers/private info for a public view
-export type PublicTricycleView = Omit<Tricycle, "phoneNumber">;
-
-// Record - Dashboard-style stats
-export type StatusCounts = Record<ComplaintStatus, number>;
+export type SessionUpdate = Partial<Session>;
+export type PublicTutorView = Omit<User, "email">;
+export type StatusCounts = Record<BookingStatus, number>;

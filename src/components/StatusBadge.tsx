@@ -1,15 +1,15 @@
 // src/components/StatusBadge.tsx
 import React from "react";
-import { ComplaintStatus } from "../types/index"; 
+import { BookingStatus } from "../types/index";
 
 interface StatusBadgeProps {
-    statusType: ComplaintStatus; 
+    statusType: BookingStatus;
     children?: React.ReactNode;
 }
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ statusType, children }) => {
     return (
-        <div className={`status-badge status-${statusType.toLowerCase()}`}>
+        <div style={{ padding: "8px 10px", borderRadius: "999px", background: "#eef2ff", color: "#4338ca", display: "inline-block", marginTop: "8px" }}>
             <strong>Status: </strong>
             {statusType}
             {children}

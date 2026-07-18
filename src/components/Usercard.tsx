@@ -8,19 +8,13 @@ interface UserCardProps {
 }
 
 function UserCard({ user, onSelect }: UserCardProps) {
-    const handleClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
-        onSelect(user);
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        console.log("Search:", e.target.value);
-    };
-
     return (
-        <div className="user-card">
-            <h3>{user.name}</h3>
-            <button onClick={handleClick}>Select</button>
-            <input onChange={handleChange} placeholder="Search..." />
+        <div style={{ border: "1px solid #d1d5db", borderRadius: "12px", padding: "14px", marginBottom: "10px" }}>
+            <h3 style={{ margin: "0 0 6px" }}>{user.name}</h3>
+            <p style={{ margin: "0 0 6px" }}><strong>Role:</strong> {user.role}</p>
+            <p style={{ margin: "0 0 6px" }}><strong>Bio:</strong> {user.bio}</p>
+            <p style={{ margin: "0 0 10px" }}><strong>Skills:</strong> {user.skills.join(", ")}</p>
+            <button onClick={() => onSelect(user)}>View Tutor</button>
         </div>
     );
 }

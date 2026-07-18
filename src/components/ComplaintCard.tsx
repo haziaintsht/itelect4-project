@@ -1,31 +1,19 @@
 // src/components/ComplaintCard.tsx
 import React from "react";
-import type { Complaint } from "../types/index";
+import type { Session } from "../types/index";
 
 interface ComplaintCardProps {
-    complaint: Complaint;
-    onSelect: (complaint: Complaint) => void;
+    session: Session;
+    onSelect: (session: Session) => void;
 }
 
-function ComplaintCard({ complaint, onSelect }: ComplaintCardProps) {
-    // Typed mouse event for clicking the action button
-    const handleClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
-        onSelect(complaint);
-    };
-
-    // Typed change event for inline logging / notes
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        console.log("Admin note update:", e.target.value);
-    };
-
+function ComplaintCard({ session, onSelect }: ComplaintCardProps) {
     return (
-        <div className="complaint-card">
-            <h3>Complaint #{complaint.id}</h3>
-            <p><strong>Complainant:</strong> {complaint.complainantName}</p>
-            <p><strong>Status:</strong> {complaint.status}</p>
-            
-            <button onClick={handleClick}>View Details</button>
-            <input onChange={handleChange} placeholder="Add rapid note..." />
+        <div style={{ border: "1px solid #e5e7eb", borderRadius: "12px", padding: "14px", marginBottom: "10px", background: "#fff" }}>
+            <h3 style={{ margin: "0 0 6px" }}>{session.title}</h3>
+            <p style={{ margin: "0 0 6px" }}><strong>Subject:</strong> {session.subject}</p>
+            <p style={{ margin: "0 0 10px" }}><strong>Status:</strong> {session.status}</p>
+            <button onClick={() => onSelect(session)}>View Details</button>
         </div>
     );
 }
