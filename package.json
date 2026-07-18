@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ./tsconfig.json",
+    "build": "npm --prefix ./itelect4-project run build"
+  },
+  "dependencies": {
+    "typescript": "^7.0.2"
+  }
+}
