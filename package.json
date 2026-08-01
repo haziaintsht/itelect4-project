@@ -1,9 +1,29 @@
 {
+  "name": "itelect4-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "typecheck": "tsc --noEmit -p ./tsconfig.json",
-    "build": "npm --prefix ./itelect4-project run build"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite",
+    "start": "vite",
+    "build": "tsc --noEmit && vite build"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
   "dependencies": {
-    "typescript": "^7.0.2"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.3.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3",
+    "vite": "^5.4.10"
   }
 }

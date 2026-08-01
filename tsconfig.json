@@ -3,10 +3,13 @@
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "rootDir": "./",
+    "outDir": "./dist",
     "strict": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "jsx": "react-jsx",
-    "noEmit": true
+    "jsx": "react-jsx"
   },
-  "include": ["./itelect4-project/src/**/*"]
+  "include": ["src/**/*", "src/types/**/*"]
 }
+
