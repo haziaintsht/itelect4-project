@@ -5,20 +5,26 @@ import type { Session } from "../types/index";
 interface ComplaintCardProps {
     session: Session;
     onSelect: (session: Session) => void;
+    variant?: "default" | "compact";
 }
 
-function ComplaintCard({ session, onSelect }: ComplaintCardProps) {
+function ComplaintCard({ session, onSelect, variant = "default" }: ComplaintCardProps) {
+    const isCompact = variant === "compact";
     return (
-        <div style={{ border: "1px solid #e2e8f0", borderRadius: "16px", padding: "16px", marginBottom: "12px", background: "linear-gradient(135deg, #ffffff 0%, #f8fbff 100%)", boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                <h3 style={{ margin: 0, fontSize: "18px" }}>{session.title}</h3>
-                <span style={{ background: "#eff6ff", color: "#2563eb", padding: "6px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: 700, textTransform: "uppercase" }}>
+        <div className={`rounded-3xl border border-gray-200 bg-white shadow-xl shadow-slate-200/50 transition hover:-translate-y-0.5 hover:shadow-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:shadow-none mb-4 ${isCompact ? "p-3" : "p-5"}`}>
+            <div className="flex items-center justify-between gap-3 mb-3">
+                <h3 className={`font-semibold text-slate-900 dark:text-slate-100 ${isCompact ? "text-sm" : "text-base"}`}>{session.title}</h3>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-700 dark:bg-slate-700 dark:text-slate-200">
                     {session.status}
                 </span>
             </div>
-            <p style={{ margin: "0 0 8px", color: "#64748b" }}><strong>Subject:</strong> {session.subject}</p>
-            <p style={{ margin: "0 0 12px", color: "#475569", lineHeight: 1.5 }}>{session.description}</p>
-            <button onClick={() => onSelect(session)} style={{ border: "none", background: "#111827", color: "#fff", padding: "9px 12px", borderRadius: "10px", cursor: "pointer", fontWeight: 600 }}>
+            {!isCompact && (
+                <p className="mb-2 text-sm text-slate-600 dark:text-slate-300"><strong>Subject:</strong> {session.subject}</p>
+            )}
+            {!isCompact && (
+                <p className="mb-4 text-sm leading-6 text-slate-700 dark:text-slate-300">{session.description}</p>
+            )}
+            <button onClick={() => onSelect(session)} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-slate-300">
                 View Details
             </button>
         </div>
