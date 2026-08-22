@@ -1,10 +1,12 @@
 // src/components/ComplaintCard.tsx
+// SESSION 7: the data now arrives from json-server over HTTP, so the prop
+// type says ApiSession (string id, ISO-string createdAt) instead of Session.
 import React from "react";
-import type { Session } from "../types/index";
+import type { ApiSession } from "../types/index";
 
 interface ComplaintCardProps {
-    session: Session;
-    onSelect: (session: Session) => void;
+    session: ApiSession;
+    onSelect: (session: ApiSession) => void;
     variant?: "default" | "compact";
 }
 

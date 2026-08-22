@@ -1,28 +1,28 @@
 // src/pages/SessionsPage.tsx
-import React from "react";
-import { useEffect, useRef, useState } from "react";
+// SESSION 7: the three useState calls, the useEffect and the setTimeout
+// are gone -- useQuery owns loading, caching and refetching now. The
+// search box reads and writes the uiStore, not local state.
+import React, { useRef } from "react";
 import { Link } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import ComplaintCard from "../components/ComplaintCard";
 import usePrevious from "../hooks/usePrevious";
-import { sessions as mockSessions } from "../data/mockData";
-import type { Session } from "../types/index";
+import useUiStore from "../store/uiStore";
+import { fetchSessions } from "../api/client";
+import type { ApiSession } from "../types/index";
 
 function SessionsPage() {
-    const [sessions, setSessions] = useState<Session[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isError, setIsError] = useState<boolean>(false);
-    const [searchTerm, setSearchTerm] = useState<string>("");
-    const searchInputRef = useRef<HTMLInputElement>(null);
+    // The search box now reads and writes the store, not local state
+    const searchTerm = useUiStore((state) => state.searchTerm);
+    const setSearchTerm = useUiStore((state) => state.setSearchTerm);
     const previousSearch = usePrevious(searchTerm);
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        const timer = window.setTimeout(() => {
-            setSessions(mockSessions);
-            setIsLoading(false);
-        }, 500);
-
-        return () => window.clearTimeout(timer);
-    }, []);
+    // These four lines replace ALL of Session 6's fetching state
+    const { data, isPending, isError, error } = useQuery<ApiSession[]>({
+        queryKey: ["sessions"],
+        queryFn: fetchSessions,
+    });
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         setSearchTerm(e.target.value);
@@ -32,22 +32,23 @@ function SessionsPage() {
         searchInputRef.current?.focus();
     };
 
-    const filteredSessions = sessions.filter((session) =>
-        session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        session.subject.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    if (isLoading) {
+    if (isPending) {
         return <div className="animate-pulse rounded-3xl bg-white p-8 text-slate-500 dark:bg-slate-900 dark:text-slate-400">Loading sessions...</div>;
     }
 
     if (isError) {
         return (
             <div className="rounded-3xl bg-red-50 p-8 text-red-700 dark:bg-red-900 dark:text-red-200">
-                Could not load sessions. Please try again.
+                {error?.message ?? "Could not load sessions."} -- is json-server running on port 3001?
             </div>
         );
     }
+
+    // Below this line data is ApiSession[], never undefined
+    const filteredSessions = data.filter((session) =>
+        session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        session.subject.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="mx-auto max-w-7xl space-y-6">
@@ -56,12 +57,6 @@ function SessionsPage() {
                     <h2 className="text-2xl font-bold text-slate-950 dark:text-slate-100">Sessions</h2>
                     <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Browse and book a tutoring session.</p>
                 </div>
-                <button
-                    onClick={() => setIsError(true)}
-                    className="rounded-full bg-red-100 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800"
-                >
-                    Simulate Error
-                </button>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

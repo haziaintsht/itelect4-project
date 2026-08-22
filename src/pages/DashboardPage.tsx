@@ -1,9 +1,13 @@
 // src/pages/DashboardPage.tsx
+// SESSION 7: the session count now comes from json-server (shared cache
+// with SessionsPage). users still comes from mockData until Module 4.
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import UserCard from "../components/Usercard";
 import useToggle from "../hooks/useToggle";
-import { sessions, users } from "../data/mockData";
-import type { User } from "../types/index";
+import { users } from "../data/mockData";
+import { fetchSessions } from "../api/client";
+import type { ApiSession, User } from "../types/index";
 
 function DashboardPage() {
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -17,6 +21,12 @@ function DashboardPage() {
 
         return () => window.clearInterval(interval);
     }, []);
+
+    // Same ["sessions"] key as SessionsPage -- one request serves both
+    const { data: sessions } = useQuery<ApiSession[]>({
+        queryKey: ["sessions"],
+        queryFn: fetchSessions,
+    });
 
     return (
         <div className="mx-auto max-w-7xl space-y-8">
@@ -37,7 +47,7 @@ function DashboardPage() {
                     </div>
                     <div className="rounded-3xl border border-slate-200 bg-slate-100 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                         <p className="text-sm text-slate-600 dark:text-slate-300">Sessions available</p>
-                        <p className="mt-3 text-3xl font-bold text-slate-950 dark:text-slate-100">{sessions.length}</p>
+                        <p className="mt-3 text-3xl font-bold text-slate-950 dark:text-slate-100">{(sessions ?? []).length}</p>
                     </div>
                     <div className="rounded-3xl border border-slate-200 bg-slate-100 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                         <p className="text-sm text-slate-600 dark:text-slate-300">Tutors</p>

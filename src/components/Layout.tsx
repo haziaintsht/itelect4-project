@@ -1,11 +1,13 @@
 // src/components/Layout.tsx
 import { NavLink, Outlet } from "react-router";
-import useToggle from "../hooks/useToggle";
 import useAuthStore from "../store/authStore";
+import useUiStore from "../store/uiStore"; // <-- NEW
 
 function Layout() {
-    // Dark mode lives here so every page inherits it
-    const [isDarkMode, toggleDarkMode] = useToggle(false);
+    // Dark mode lives in the uiStore now, so every page inherits it
+    // AND a refresh remembers it. Layout no longer owns it.
+    const isDarkMode = useUiStore((state) => state.isDarkMode);
+    const toggleDarkMode = useUiStore((state) => state.toggleDarkMode);
     const userName = useAuthStore((state) => state.userName);
     const logout = useAuthStore((state) => state.logout);
 

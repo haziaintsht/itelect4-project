@@ -1,0 +1,57 @@
+{
+  "sessions": [
+    {
+      "id": "101",
+      "title": "Calculus Crash Course",
+      "subject": "Calculus",
+      "description": "Review limits, derivatives, and exam strategy before finals week.",
+      "tutorId": 1,
+      "tuteeId": 2,
+      "status": "requested",
+      "createdAt": "2026-07-18T09:00:00.000Z",
+      "sessionType": "one-on-one",
+      "meetingLink": "https://meet.example.com/calculus"
+    },
+    {
+      "id": "102",
+      "title": "TypeScript Debugging Lab",
+      "subject": "Programming",
+      "description": "Walk through a React + TypeScript bug and improve confidence quickly.",
+      "tutorId": 1,
+      "status": "confirmed",
+      "createdAt": "2026-07-18T11:00:00.000Z",
+      "sessionType": "group",
+      "meetingLink": "https://meet.example.com/typescript"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "201",
+      "sessionId": 101,
+      "tuteeId": 2,
+      "tutorId": 1,
+      "status": "requested",
+      "requestedAt": "2026-07-18T08:45:00.000Z",
+      "note": "Please help with derivative practice before the exam."
+    },
+    {
+      "id": "202",
+      "sessionId": 102,
+      "tuteeId": 2,
+      "tutorId": 1,
+      "status": "confirmed",
+      "requestedAt": "2026-07-18T10:30:00.000Z",
+      "note": "I will bring my current code errors and questions."
+    },
+    {
+      "sessionId": 101,
+      "tuteeId": 2,
+      "tutorId": 1,
+      "status": "requested",
+      "requestedAt": "2026-08-22T04:23:27.108Z",
+      "note": "yes",
+      "id": "c4BN-G3YUDQ"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

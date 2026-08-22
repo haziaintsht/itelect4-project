@@ -1,21 +1,49 @@
 // src/pages/SessionDetailPage.tsx
+// SESSION 7: the session comes from json-server, keyed by the id in the
+// URL, and bookings come from the API too. users stays in mockData until
+// Module 4 brings real users.
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import StatusBadge from "../components/StatusBadge";
 import UserCard from "../components/Usercard";
-import { bookings, sessions, users } from "../data/mockData";
+import { fetchSessionById, fetchBookings } from "../api/client";
+import { users } from "../data/mockData";
+import type { ApiSession, ApiBooking } from "../types/index";
 
 function SessionDetailPage() {
     // Reads whatever is in the :sessionId slot of the URL
     const { sessionId } = useParams<{ sessionId: string }>();
     const navigate = useNavigate();
 
-    // Turn that string into a real number, then find the session
-    const sessionIdNumber = Number(sessionId);
-    const session = sessions.find((s) => s.id === sessionIdNumber);
+    // The id from the URL goes INTO the key, so /sessions/101 and
+    // /sessions/102 get one cache entry each instead of sharing one.
+    const {
+        data: session,
+        isPending,
+        isError,
+        error,
+    } = useQuery<ApiSession>({
+        queryKey: ["sessions", sessionId],
+        queryFn: () => fetchSessionById(sessionId!),
+        enabled: sessionId !== undefined, // do not run without an id
+    });
 
-    const tutor = users.find((user) => user.id === session?.tutorId);
-    const booking = bookings.find((b) => b.sessionId === session?.id);
+    // The whole bookings list (shared cache with BookingsPage); the match
+    // for THIS session is found on the client.
+    const { data: allBookings } = useQuery<ApiBooking[]>({
+        queryKey: ["bookings"],
+        queryFn: fetchBookings,
+    });
+
+    const booking = (allBookings ?? []).find(
+        (b) => b.sessionId === Number(sessionId)
+    );
+
+    // users still come from mockData; ids are numbers on both sides
+    const tutor = session !== undefined
+        ? users.find((user) => user.id === session.tutorId)
+        : undefined;
 
     const generatedSuggestion = useMemo(() => {
         if (session === undefined || tutor === undefined || booking === undefined) {
@@ -28,7 +56,20 @@ function SessionDetailPage() {
         return `AI study tip: ${tutorName} suggests a focused ${topic} session that starts with a 5-minute review of the toughest concept, follows with one worked example, and ends with a quick practice quiz. Since the booking note says "${note}", the plan should emphasize confidence-building and clear step-by-step explanations.`;
     }, [booking, session, tutor]);
 
-    // The URL is user input -- they can type anything. Handle that.
+    // A bad code makes fetchSessionById throw, and the throw lands here.
+    if (isPending) {
+        return <div className="animate-pulse rounded-3xl bg-white p-8 text-slate-500 dark:bg-slate-900 dark:text-slate-400">Loading session...</div>;
+    }
+
+    if (isError) {
+        return (
+            <div className="rounded-3xl bg-red-50 p-8 text-red-700 dark:bg-red-900 dark:text-red-200">
+                {error?.message ?? `No session found with id "${sessionId}".`}
+            </div>
+        );
+    }
+
+    // Defensive: rules out undefined so TypeScript can narrow below.
     if (session === undefined) {
         return (
             <div className="rounded-3xl bg-red-50 p-8 text-red-700 dark:bg-red-900 dark:text-red-200">
