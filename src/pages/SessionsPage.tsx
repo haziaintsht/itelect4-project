@@ -10,6 +10,7 @@ import usePrevious from "../hooks/usePrevious";
 import useUiStore from "../store/uiStore";
 import { fetchSessions } from "../api/client";
 import type { ApiSession } from "../types/index";
+import { Input } from "@/components/ui/input";
 
 function SessionsPage() {
     // The search box now reads and writes the store, not local state
@@ -63,12 +64,12 @@ function SessionsPage() {
                 <div className="rounded-3xl border border-slate-200 bg-slate-100 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                     <p className="text-sm text-slate-600 dark:text-slate-300">Search sessions</p>
                     <div className="mt-3 flex gap-3">
-                        <input
+                        <Input
                             ref={searchInputRef}
                             value={searchTerm}
                             onChange={handleSearchChange}
                             placeholder="Search sessions..."
-                            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                            className="w-full"
                         />
                         <button
                             onClick={focusSearch}

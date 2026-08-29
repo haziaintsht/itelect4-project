@@ -18,6 +18,12 @@ live activity counter, and a simple generative-text feature for study suggestion
 - Zustand (with `persist`) — auth + UI state, saved to localStorage
 - Vite (dev server + bundler) · Tailwind CSS
 - json-server — mock REST API on port 3001, served from `db.json`
+- React Hook Form + Zod (`@hookform/resolvers`) — form values + validation
+- Shadcn UI (Base UI + Nova preset) — Button, Input and Label, owned in `src/components/ui/`
+
+> The booking form's rules live in `src/schemas/bookingSchema.ts` (Zod), the
+> form type is derived with `z.infer`, and the schema is wired into the form
+> with `zodResolver`. Invalid submissions never reach the API.
 
 ## Installation
 

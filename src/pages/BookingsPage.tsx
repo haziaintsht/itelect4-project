@@ -1,19 +1,37 @@
 // src/pages/BookingsPage.tsx
-// SESSION 7: bookings come from json-server via useQuery, and the Add
-// form uses useMutation -- on success it invalidates ["bookings"] so the
-// list refetches itself without a page reload.
-import { useState } from "react";
+// SESSION 8: bookings come from json-server via useQuery, and the Add
+// form now uses React Hook Form + a Zod resolver -- the schema decides
+// what reaches the SAME useMutation from Session 7. onSuccess still
+// invalidates ["bookings"], and reset() clears the fields after the save.
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import StatusBadge from "../components/StatusBadge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { users } from "../data/mockData";
 import { fetchBookings, fetchSessions, createBooking } from "../api/client";
+import { bookingSchema } from "../schemas/bookingSchema";
+import type { BookingFormValues } from "../schemas/bookingSchema";
 import { BookingStatus } from "../types/index";
 import type { ApiBooking, ApiSession } from "../types/index";
+// The useState import is GONE -- useForm holds the values now
 
 function BookingsPage() {
-    // Local, because only this one form reads it. Not store material.
-    const [note, setNote] = useState<string>("");
     const queryClient = useQueryClient();
+
+    // useForm holds the values, runs the schema, and stores the errors.
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<BookingFormValues>({
+        resolver: zodResolver(bookingSchema),
+        mode: "onBlur",
+        defaultValues: { sessionId: "", note: "" },
+    });
 
     // 1. READ -- same useQuery pattern as SessionsPage
     const { data: bookings, isPending, isError } = useQuery<ApiBooking[]>({
@@ -33,18 +51,22 @@ function BookingsPage() {
         onSuccess: () => {
             // "the bookings list is out of date now -- go and refetch it"
             queryClient.invalidateQueries({ queryKey: ["bookings"] });
-            setNote("");
+            reset(); // clears every field at once -- only AFTER the save
         },
     });
 
-    const handleAdd = (): void => {
+    // handleSubmit only calls this after the schema passes.
+    const onSubmit = (values: BookingFormValues): void => {
+        const selectedSession = sessions?.find(
+            (s) => s.id === values.sessionId
+        );
         addBooking.mutate({
-            sessionId: 101,
+            sessionId: Number(values.sessionId),
             tuteeId: 2,
-            tutorId: 1,
+            tutorId: selectedSession?.tutorId ?? 1,
             status: BookingStatus.REQUESTED,
             requestedAt: new Date().toISOString(), // a STRING, not a Date
-            note,
+            note: values.note,
         });
     };
 
@@ -69,27 +91,69 @@ function BookingsPage() {
                 </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                <p className="text-sm text-slate-600 dark:text-slate-300">Request a booking for "Calculus Crash Course"</p>
-                <div className="mt-3 flex gap-3">
-                    <input
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                        placeholder="What do you need help with?"
-                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                    />
-                    <button
-                        onClick={handleAdd}
-                        disabled={note === "" || addBooking.isPending}
-                        className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:bg-slate-400 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-slate-300"
+            <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900"
+            >
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                    Request a booking -- pick a session and tell the tutor what you need.
+                </p>
+
+                <div className="grid gap-1.5">
+                    <Label htmlFor="sessionId" className="text-foreground">
+                        Session
+                    </Label>
+                    <select
+                        id="sessionId"
+                        {...register("sessionId")}
+                        className="h-9 w-full min-w-0 rounded-lg border border-input bg-background px-2.5 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30"
                     >
-                        {addBooking.isPending ? "Saving..." : "Add"}
-                    </button>
+                        <option value="">Select a session...</option>
+                        {(sessions ?? []).map((session) => (
+                            <option key={session.id} value={session.id}>
+                                {session.title}
+                            </option>
+                        ))}
+                    </select>
+                    {errors.sessionId && (
+                        <p className="text-sm text-red-600">
+                            {errors.sessionId.message}
+                        </p>
+                    )}
                 </div>
+
+                <div className="grid gap-1.5">
+                    <Label htmlFor="note" className="text-foreground">
+                        What do you need help with?
+                    </Label>
+                    <Input
+                        id="note"
+                        {...register("note")}
+                        aria-invalid={errors.note ? true : undefined}
+                        placeholder="e.g. Please help me with limits and derivatives before the exam."
+                    />
+                    {errors.note && (
+                        <p className="text-sm text-red-600">
+                            {errors.note.message}
+                        </p>
+                    )}
+                </div>
+
+                {/* Never disabled on "invalid": clicking it is what shows the
+                    error messages. Only a save in flight disables it. */}
+                <Button
+                    type="submit"
+                    disabled={addBooking.isPending}
+                    className="justify-self-start"
+                >
+                    {addBooking.isPending ? "Saving..." : "Add booking"}
+                </Button>
                 {addBooking.isError && addBooking.error && (
-                    <p className="mt-2 text-sm text-red-700 dark:text-red-300">{addBooking.error.message}</p>
+                    <p className="mt-2 text-sm text-red-700 dark:text-red-300">
+                        {addBooking.error.message}
+                    </p>
                 )}
-            </div>
+            </form>
 
             <div className="grid gap-4 sm:grid-cols-2">
                 {(bookings ?? []).map((booking) => {
