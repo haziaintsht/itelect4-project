@@ -64,3 +64,20 @@ export interface ApiResponse<T> {
 export type SessionUpdate = Partial<Session>;
 export type PublicTutorView = Omit<User, "email">;
 export type StatusCounts = Record<BookingStatus, number>;
+
+// ===== API SHAPES (SESSION 7) =====
+// JSON has no Date and json-server writes ids as strings, so what the API
+// hands back is NOT the Session/Booking shape above. Both API types are
+// DERIVED from the core entities, which stay the single source of truth.
+export type ApiSession = Omit<Session, "id" | "createdAt"> & {
+    id: string; // json-server ids look like "101"
+    createdAt: string; // an ISO string, never a Date object
+};
+
+export type ApiBooking = Omit<Booking, "id" | "requestedAt"> & {
+    id: string;
+    requestedAt: string; // an ISO string, never a Date object
+};
+
+// What we SEND when creating one. No id yet -- the server makes it.
+export type NewBooking = Omit<ApiBooking, "id">;
