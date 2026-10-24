@@ -1,26 +1,64 @@
-// src/components/UserCard.tsx
-import React from "react";
+
+
+
 import type { User } from "../types/index";
+import Avatar from "./Avatar";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface UserCardProps {
     user: User;
-    onSelect: (user: User) => void;
+    onSelect?: (user: User) => void;
+    isSelected?: boolean;
 }
 
-function UserCard({ user, onSelect }: UserCardProps) {
+function UserCard({ user, onSelect, isSelected = false }: UserCardProps) {
     return (
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:bg-slate-800 dark:border-slate-700 mb-4">
-            <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{user.name}</h3>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+        <div
+            className={cn(
+                "flex h-full flex-col rounded-2xl border bg-card p-5 shadow-sm transition-colors",
+                isSelected && "border-primary ring-3 ring-ring"
+            )}
+        >
+            <div className="flex items-center gap-3">
+                <Avatar name={user.name} size="lg" />
+                <div className="min-w-0">
+                    <h3 className="truncate font-semibold text-foreground">{user.name}</h3>
+                    <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+                </div>
+                <span className="ml-auto shrink-0 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium capitalize text-primary">
                     {user.role}
                 </span>
             </div>
-            <p className="mb-2 text-sm text-slate-600 dark:text-slate-300"><strong>Bio:</strong> {user.bio}</p>
-            <p className="mb-4 text-sm text-slate-600 dark:text-slate-300"><strong>Skills:</strong> {user.skills.join(", ")}</p>
-            <button onClick={() => onSelect(user)} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-slate-300">
-                View Tutor
-            </button>
+
+            <p className="mt-4 text-sm text-muted-foreground">
+                {user.bio || "Peer tutor on the platform."}
+            </p>
+
+            {user.skills.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                    {user.skills.map((skill) => (
+                        <span
+                            key={skill}
+                            className="rounded-md bg-muted px-2 py-0.5 text-xs text-foreground"
+                        >
+                            {skill}
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            {onSelect && (
+                <div className="mt-auto pt-4">
+                    <Button
+                        variant={isSelected ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => onSelect(user)}
+                    >
+                        {isSelected ? "Selected" : "View tutor"}
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }

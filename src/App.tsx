@@ -1,4 +1,4 @@
-// src/App.tsx -- route table only
+
 import { Route, Routes } from "react-router";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";

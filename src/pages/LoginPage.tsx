@@ -1,20 +1,23 @@
-// src/pages/LoginPage.tsx
-// SESSION 10: a real email + password, checked by the backend. The same
-// page registers a new account: /api/auth/register answers with a token
-// too, so a new user is logged in the moment the account exists. Either
-// way the JWT and profile go into authStore and the user lands on
-// /bookings.
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { BookOpen, GraduationCap, LoaderCircle } from "lucide-react";
 import useAuthStore from "../store/authStore";
+import ErrorAlert from "../components/ErrorAlert";
 import { login, register } from "../api/client";
 import { UserRole } from "../types/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 type Mode = "login" | "register";
+
+
+const ROLE_OPTIONS = [
+    { value: UserRole.TUTEE, title: "Tutee", hint: "I want help", icon: BookOpen },
+    { value: UserRole.TUTOR, title: "Tutor", hint: "I can teach", icon: GraduationCap },
+];
 
 function LoginPage() {
     const [mode, setMode] = useState<Mode>("login");
@@ -30,8 +33,8 @@ function LoginPage() {
 
     const isRegister = mode === "register";
 
-    const switchMode = (): void => {
-        setMode(isRegister ? "login" : "register");
+    const switchMode = (next: Mode): void => {
+        setMode(next);
         setError("");
     };
 
@@ -44,8 +47,6 @@ function LoginPage() {
                 ? await register(name, email, password, role)
                 : await login(email, password);
             setAuth(auth);
-            // A different person may have been logged in before -- their
-            // bookings must not flash up while this user's load.
             queryClient.removeQueries({ queryKey: ["bookings"] });
             navigate("/bookings");
         } catch (err: unknown) {
@@ -60,98 +61,148 @@ function LoginPage() {
     const isIncomplete =
         email === "" || password === "" || (isRegister && name === "");
 
+    const tabClass = (active: boolean): string =>
+        cn(
+            "rounded-md py-2 text-sm font-medium transition-colors",
+            active
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+        );
+
     return (
-        <div className="mx-auto max-w-sm rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/40 dark:border-slate-700 dark:bg-slate-900">
-            <h2 className="mb-4 text-2xl font-bold text-slate-950 dark:text-slate-100">
-                {isRegister ? "Create an account" : "Login"}
-            </h2>
-            {error && (
-                <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900 dark:text-red-200">
-                    {error}
+        <div className="mx-auto max-w-md py-4">
+            <div className="mb-6 text-center">
+                <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+                    <GraduationCap className="size-6" />
+                </span>
+                <h1 className="mt-4 text-2xl font-bold tracking-tight text-foreground">
+                    {isRegister ? "Create your account" : "Welcome back"}
+                </h1>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    {isRegister
+                        ? "Join as a tutee to get help, or as a tutor to teach."
+                        : "Log in to request and track your bookings."}
+                </p>
+            </div>
+
+            <div className="rounded-2xl border bg-card p-6 shadow-sm">
+                <div role="tablist" className="mb-6 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+                    <button
+                        type="button"
+                        role="tab"
+                        aria-selected={!isRegister}
+                        onClick={() => switchMode("login")}
+                        className={tabClass(!isRegister)}
+                    >
+                        Log in
+                    </button>
+                    <button
+                        type="button"
+                        role="tab"
+                        aria-selected={isRegister}
+                        onClick={() => switchMode("register")}
+                        className={tabClass(isRegister)}
+                    >
+                        Register
+                    </button>
                 </div>
-            )}
-            <form onSubmit={handleSubmit} className="grid gap-3">
-                {isRegister && (
-                    <div className="grid gap-1.5">
-                        <Label htmlFor="name" className="text-foreground">
-                            Name
+
+                {error && (
+                    <div className="mb-5">
+                        <ErrorAlert message={error} />
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="grid gap-4">
+                    {isRegister && (
+                        <div className="grid gap-2">
+                            <Label htmlFor="name" className="text-foreground">
+                                Full name
+                            </Label>
+                            <Input
+                                id="name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Juan Dela Cruz"
+                                autoComplete="name"
+                                className="h-10"
+                            />
+                        </div>
+                    )}
+                    <div className="grid gap-2">
+                        <Label htmlFor="email" className="text-foreground">
+                            Email
                         </Label>
                         <Input
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Juan Dela Cruz"
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@school.edu"
+                            autoComplete="email"
+                            className="h-10"
                         />
                     </div>
-                )}
-                <div className="grid gap-1.5">
-                    <Label htmlFor="email" className="text-foreground">
-                        Email
-                    </Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@school.edu"
-                    />
-                </div>
-                <div className="grid gap-1.5">
-                    <Label htmlFor="password" className="text-foreground">
-                        Password
-                    </Label>
-                    <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        // The User schema's minlength -- the browser says so
-                        // before the server has to.
-                        minLength={isRegister ? 6 : undefined}
-                    />
-                    {isRegister && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                            At least 6 characters.
-                        </p>
-                    )}
-                </div>
-                {isRegister && (
-                    <div className="grid gap-1.5">
-                        <Label htmlFor="role" className="text-foreground">
-                            I am a
+                    <div className="grid gap-2">
+                        <Label htmlFor="password" className="text-foreground">
+                            Password
                         </Label>
-                        <select
-                            id="role"
-                            value={role}
-                            onChange={(e) => setRole(e.target.value as UserRole)}
-                            className="h-9 w-full min-w-0 rounded-lg border border-input bg-background px-2.5 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
-                        >
-                            <option value={UserRole.TUTEE}>Tutee -- I want help</option>
-                            <option value={UserRole.TUTOR}>Tutor -- I teach</option>
-                        </select>
+                        <Input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            autoComplete={isRegister ? "new-password" : "current-password"}
+                            minLength={isRegister ? 6 : undefined}
+                            className="h-10"
+                        />
+                        {isRegister && (
+                            <p className="text-xs text-muted-foreground">At least 6 characters.</p>
+                        )}
                     </div>
-                )}
-                <Button
-                    type="submit"
-                    disabled={isPending || isIncomplete}
-                    className="mt-2 w-full"
-                >
-                    {isPending
-                        ? isRegister ? "Creating account..." : "Signing in..."
-                        : isRegister ? "Register" : "Log In"}
-                </Button>
-            </form>
-            <p className="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
-                {isRegister ? "Already have an account?" : "No account yet?"}{" "}
-                <button
-                    type="button"
-                    onClick={switchMode}
-                    className="font-semibold text-slate-900 underline dark:text-slate-100"
-                >
-                    {isRegister ? "Log in" : "Register"}
-                </button>
-            </p>
+
+                    {isRegister && (
+                        <fieldset className="grid gap-2">
+                            <legend className="mb-2 text-sm font-medium text-foreground">I am a...</legend>
+                            <div className="grid grid-cols-2 gap-3">
+                                {ROLE_OPTIONS.map(({ value, title, hint, icon: Icon }) => {
+                                    const selected = role === value;
+                                    return (
+                                        <button
+                                            key={value}
+                                            type="button"
+                                            aria-pressed={selected}
+                                            onClick={() => setRole(value)}
+                                            className={cn(
+                                                "rounded-xl border p-3 text-left transition-colors",
+                                                selected
+                                                    ? "border-primary bg-accent"
+                                                    : "hover:bg-muted"
+                                            )}
+                                        >
+                                            <Icon className={cn("size-5", selected ? "text-primary" : "text-muted-foreground")} />
+                                            <span className="mt-2 block text-sm font-medium text-foreground">{title}</span>
+                                            <span className="block text-xs text-muted-foreground">{hint}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </fieldset>
+                    )}
+
+                    <Button
+                        type="submit"
+                        disabled={isPending || isIncomplete}
+                        className="mt-2 h-10 w-full"
+                    >
+                        {isPending && <LoaderCircle className="animate-spin" />}
+                        {isPending
+                            ? isRegister ? "Creating account..." : "Signing in..."
+                            : isRegister ? "Create account" : "Log in"}
+                    </Button>
+                </form>
+            </div>
         </div>
     );
 }
