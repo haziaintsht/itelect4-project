@@ -1,6 +1,7 @@
 // src/pages/DashboardPage.tsx
-// SESSION 7: the session count now comes from json-server (shared cache
-// with SessionsPage). users still comes from mockData until Module 4.
+// SESSION 7: the session count comes from the API (shared cache with
+// SessionsPage). SESSION 10: mockData is gone -- the tutors listed here
+// are the ones the backend populated onto each session.
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import UserCard from "../components/Usercard";
@@ -29,16 +30,16 @@ function DashboardPage() {
     });
 
     // Unique tutors derived from sessions (the backend populates
-    // tutor { name, email } on every session query)
+    // tutor { id, name, email } on every session query)
     const tutors = useMemo(() => {
         const seen = new Set<string>();
         const list: User[] = [];
         for (const session of sessions ?? []) {
             const t = session.tutor;
-            if (t && !seen.has(t.name)) {
-                seen.add(t.name);
+            if (t && !seen.has(t.id)) {
+                seen.add(t.id);
                 list.push({
-                    id: t.name,
+                    id: t.id,
                     name: t.name,
                     email: t.email,
                     role: UserRole.TUTOR,

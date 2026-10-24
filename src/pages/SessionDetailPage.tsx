@@ -4,12 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import StatusBadge from "../components/StatusBadge";
 import UserCard from "../components/Usercard";
 import { fetchSessionById, fetchBookings } from "../api/client";
+import useAuthStore from "../store/authStore";
 import { UserRole } from "../types/index";
 import type { ApiSession, ApiBooking } from "../types/index";
 
 function SessionDetailPage() {
     const { sessionId } = useParams<{ sessionId: string }>();
     const navigate = useNavigate();
+    const token = useAuthStore((state) => state.token);
 
     const {
         data: session,
@@ -22,18 +24,21 @@ function SessionDetailPage() {
         enabled: sessionId !== undefined,
     });
 
+    // Bookings are private: the session page is public, so only ask for
+    // them once somebody is logged in -- otherwise it is a guaranteed 401.
     const { data: allBookings } = useQuery<ApiBooking[]>({
         queryKey: ["bookings"],
         queryFn: fetchBookings,
+        enabled: token !== null,
     });
 
     const booking = (allBookings ?? []).find(
-        (b) => b.sessionId === session?.id
+        (b) => b.session?.id === session?.id
     );
 
-    // The backend populates tutor with { name, email } on every session.
+    // The backend populates tutor with { id, name, email } on every session.
     const tutor = session?.tutor
-        ? { id: session.tutor.name, name: session.tutor.name, email: session.tutor.email, role: UserRole.TUTOR, bio: "", skills: [], isActive: true }
+        ? { id: session.tutor.id, name: session.tutor.name, email: session.tutor.email, role: UserRole.TUTOR, bio: "", skills: [], isActive: true }
         : undefined;
 
     const generatedSuggestion = useMemo(() => {

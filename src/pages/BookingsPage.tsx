@@ -3,6 +3,10 @@
 // form now uses React Hook Form + a Zod resolver -- the schema decides
 // what reaches the SAME useMutation from Session 7. onSuccess still
 // invalidates ["bookings"], and reset() clears the fields after the save.
+// SESSION 10: the same page against itelect4-backend. The POST sends only
+// { session, note } -- the server knows who you are from the token and
+// takes the tutor from the session -- and each booking comes back with
+// its session and tutor already populated.
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,7 +17,6 @@ import { Label } from "@/components/ui/label";
 import { fetchBookings, fetchSessions, createBooking } from "../api/client";
 import { bookingSchema } from "../schemas/bookingSchema";
 import type { BookingFormValues } from "../schemas/bookingSchema";
-import { BookingStatus } from "../types/index";
 import type { ApiBooking, ApiSession } from "../types/index";
 // The useState import is GONE -- useForm holds the values now
 
@@ -28,7 +31,11 @@ function BookingsPage() {
         formState: { errors },
     } = useForm<BookingFormValues>({
         resolver: zodResolver(bookingSchema),
-        mode: "onBlur",
+        // onTouched, not onBlur: still quiet until you leave a field, but
+        // after that an error clears AS you fix it. With onBlur the stale
+        // message only disappeared on blur -- the mousedown on "Add
+        // booking" -- which moved the button up and swallowed the click.
+        mode: "onTouched",
         defaultValues: { sessionId: "", note: "" },
     });
 
@@ -38,7 +45,7 @@ function BookingsPage() {
         queryFn: fetchBookings,
     });
 
-    // Session titles, for the card headings (shares the SessionsPage cache)
+    // The sessions for the dropdown (shares the SessionsPage cache)
     const { data: sessions } = useQuery<ApiSession[]>({
         queryKey: ["sessions"],
         queryFn: fetchSessions,
@@ -56,17 +63,7 @@ function BookingsPage() {
 
     // handleSubmit only calls this after the schema passes.
     const onSubmit = (values: BookingFormValues): void => {
-        const selectedSession = sessions?.find(
-            (s) => s.id === values.sessionId
-        );
-        addBooking.mutate({
-            sessionId: values.sessionId,
-            tuteeId: "2",
-            tutorId: selectedSession?.tutor?.name ?? "1",
-            status: BookingStatus.REQUESTED,
-            requestedAt: new Date().toISOString(),
-            note: values.note,
-        });
+        addBooking.mutate({ session: values.sessionId, note: values.note });
     };
 
     if (isPending) {
@@ -111,6 +108,7 @@ function BookingsPage() {
                         {(sessions ?? []).map((session) => (
                             <option key={session.id} value={session.id}>
                                 {session.title}
+                                {session.tutor ? ` (with ${session.tutor.name})` : ""}
                             </option>
                         ))}
                     </select>
@@ -155,33 +153,27 @@ function BookingsPage() {
             </form>
 
             <div className="grid gap-4 sm:grid-cols-2">
-                {(bookings ?? []).map((booking) => {
-                    const session = (sessions ?? []).find(
-                        (s) => s.id === booking.sessionId
-                    );
-                    const tutor = session?.tutor;
-                    return (
-                        <div
-                            key={booking.id}
-                            className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/40 dark:border-slate-700 dark:bg-slate-900"
-                        >
-                            <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                                {session ? session.title : `Session #${booking.sessionId}`}
-                            </h3>
-                            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                                Tutor: {tutor ? tutor.name : "Unknown"}
-                            </p>
-                            <StatusBadge statusType={booking.status}>
-                                <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">
-                                    {new Date(booking.requestedAt).toLocaleDateString()}
-                                </span>
-                            </StatusBadge>
-                            <p className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                                {booking.note}
-                            </p>
-                        </div>
-                    );
-                })}
+                {(bookings ?? []).map((booking) => (
+                    <div
+                        key={booking.id}
+                        className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/40 dark:border-slate-700 dark:bg-slate-900"
+                    >
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                            {booking.session ? booking.session.title : "Deleted session"}
+                        </h3>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                            Tutor: {booking.tutor ? booking.tutor.name : "Unknown"}
+                        </p>
+                        <StatusBadge statusType={booking.status}>
+                            <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">
+                                {new Date(booking.createdAt).toLocaleDateString()}
+                            </span>
+                        </StatusBadge>
+                        <p className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                            {booking.note}
+                        </p>
+                    </div>
+                ))}
             </div>
         </div>
     );

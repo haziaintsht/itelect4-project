@@ -9,9 +9,12 @@ export const bookingSchema = z.object({
 
   // Required, then a max -- then .refine() adds any rule Zod does not
   // ship: yours, as a function.
+  // 10 and 160 are the same limits as the backend's Booking schema, so
+  // the browser shows the message instead of the server answering 400.
   note: z
     .string()
     .min(1, "Tell the tutor what you need help with.")
+    .min(10, "Write at least 10 characters.")
     .max(160, "Keep the note under 160 characters.")
     .refine(
       (text) => text.trim().split(/\s+/).length >= 3,

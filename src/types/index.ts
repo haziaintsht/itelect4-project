@@ -65,22 +65,37 @@ export type SessionUpdate = Partial<Session>;
 export type PublicTutorView = Omit<User, "email">;
 export type StatusCounts = Record<BookingStatus, number>;
 
-// ===== API SHAPES (SESSION 7) =====
-// JSON has no Date and MongoDB writes ids as ObjectIds, so what the API
-// hands back is NOT the Session/Booking shape above. Both API types are
+// ===== API SHAPES (SESSION 10) =====
+// What itelect4-backend actually sends, which is NOT the Session/Booking
+// shape above. JSON has no Date, so dates are ISO strings. Each model's
+// toJSON renames Mongo's _id to id. And references come back populated:
+// a session carries its tutor, a booking its session, tutee and tutor --
+// or null, if that document has since been deleted. Every API type is
 // DERIVED from the core entities, which stay the single source of truth.
-// Sessions come back with `tutor` populated (name, email) because the
-// backend runs .populate("tutor", "name email") on every session query.
-export type ApiSession = Omit<Session, "id" | "createdAt" | "tutorId"> & {
-    id: string; // MongoDB ObjectId as a string
+export type ApiSession = Omit<Session, "createdAt" | "tutorId" | "tuteeId"> & {
     createdAt: string; // an ISO string, never a Date object
-    tutor?: { name: string; email: string }; // populated by the backend
+    tutor: Pick<User, "id" | "name" | "email"> | null; // .populate("tutor", "name email")
 };
 
-export type ApiBooking = Omit<Booking, "id" | "requestedAt"> & {
-    id: string;
-    requestedAt: string; // an ISO string, never a Date object
+export type ApiBooking = Omit<
+    Booking,
+    "sessionId" | "tuteeId" | "tutorId" | "requestedAt"
+> & {
+    session: Pick<Session, "id" | "title" | "subject"> | null;
+    tutee: Pick<User, "id" | "name"> | null;
+    tutor: Pick<User, "id" | "name"> | null;
+    createdAt: string; // when it was requested -- set by the server
 };
 
-// What we SEND when creating one. No id yet -- the server makes it.
-export type NewBooking = Omit<ApiBooking, "id">;
+// What we SEND when creating one: which session, and the note. The
+// server fills in the rest -- the tutee is whoever the token belongs to,
+// the tutor comes from the session, the status starts at "requested".
+export type NewBooking = { session: string; note: string };
+
+// What POST /api/auth/login and /api/auth/register send back.
+export type AuthUser = Pick<User, "id" | "name" | "email" | "role">;
+
+export interface AuthResponse {
+    token: string; // a JWT signed by the backend's JWT_SECRET
+    user: AuthUser;
+}
