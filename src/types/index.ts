@@ -17,7 +17,7 @@ export enum SessionType {
 
 // ===== INTERFACES (The 3 Core Entities) =====
 export interface User {
-    id: number;
+    id: string;
     name: string;
     email: string;
     role: UserRole;
@@ -27,12 +27,12 @@ export interface User {
 }
 
 export interface Session {
-    id: number;
+    id: string;
     title: string;
     subject: string;
     description: string;
-    tutorId: number;
-    tuteeId?: number;
+    tutorId: string;
+    tuteeId?: string;
     status: BookingStatus;
     createdAt: Date;
     sessionType: SessionType;
@@ -40,10 +40,10 @@ export interface Session {
 }
 
 export interface Booking {
-    id: number;
-    sessionId: number;
-    tuteeId: number;
-    tutorId: number;
+    id: string;
+    sessionId: string;
+    tuteeId: string;
+    tutorId: string;
     status: BookingStatus;
     requestedAt: Date;
     note: string;
@@ -66,12 +66,15 @@ export type PublicTutorView = Omit<User, "email">;
 export type StatusCounts = Record<BookingStatus, number>;
 
 // ===== API SHAPES (SESSION 7) =====
-// JSON has no Date and json-server writes ids as strings, so what the API
+// JSON has no Date and MongoDB writes ids as ObjectIds, so what the API
 // hands back is NOT the Session/Booking shape above. Both API types are
 // DERIVED from the core entities, which stay the single source of truth.
-export type ApiSession = Omit<Session, "id" | "createdAt"> & {
-    id: string; // json-server ids look like "101"
+// Sessions come back with `tutor` populated (name, email) because the
+// backend runs .populate("tutor", "name email") on every session query.
+export type ApiSession = Omit<Session, "id" | "createdAt" | "tutorId"> & {
+    id: string; // MongoDB ObjectId as a string
     createdAt: string; // an ISO string, never a Date object
+    tutor?: { name: string; email: string }; // populated by the backend
 };
 
 export type ApiBooking = Omit<Booking, "id" | "requestedAt"> & {

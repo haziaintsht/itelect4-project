@@ -21,7 +21,7 @@ function greetProject(name: string, year: number): string {
 console.log(greetProject(projectName, currentYear));
 
 const tutor: User = {
-    id: 1,
+    id: "1",
     name: "Mina Santos",
     email: "mina@example.com",
     role: UserRole.TUTOR,
@@ -31,11 +31,11 @@ const tutor: User = {
 };
 
 const session: Session = {
-    id: 101,
+    id: "101",
     title: "Calculus Crash Course",
     subject: "Calculus",
     description: "Session for midterm prep.",
-    tutorId: 1,
+    tutorId: "1",
     status: BookingStatus.REQUESTED,
     createdAt: new Date(),
     sessionType: SessionType.ONE_ON_ONE,
@@ -43,20 +43,20 @@ const session: Session = {
 };
 
 const booking: Booking = {
-    id: 201,
-    sessionId: 101,
-    tuteeId: 2,
-    tutorId: 1,
+    id: "201",
+    sessionId: "101",
+    tuteeId: "2",
+    tutorId: "1",
     status: BookingStatus.REQUESTED,
     requestedAt: new Date(),
     note: "Need help with derivatives before the exam."
 };
 
-function getById<T extends { id: number }>(items: T[], id: number): T | undefined {
+function getById<T extends { id: string }>(items: T[], id: string): T | undefined {
     return items.find((item) => item.id === id);
 }
 
-const foundTutor = getById<User>([tutor], 1);
+const foundTutor = getById<User>([tutor], "1");
 console.log(`Found Tutor: ${foundTutor?.name}`);
 
 const sessionResponse: ApiResponse<Session> = {
@@ -69,7 +69,7 @@ console.log(`Session Topic: ${sessionResponse.data.subject}`);
 const updatePayload: SessionUpdate = { status: BookingStatus.CONFIRMED };
 
 const publicView: PublicTutorView = {
-    id: 1,
+    id: "1",
     name: "Mina Santos",
     role: UserRole.TUTOR,
     bio: "Calculus and coding mentor",

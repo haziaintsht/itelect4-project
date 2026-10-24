@@ -10,7 +10,6 @@ import StatusBadge from "../components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { users } from "../data/mockData";
 import { fetchBookings, fetchSessions, createBooking } from "../api/client";
 import { bookingSchema } from "../schemas/bookingSchema";
 import type { BookingFormValues } from "../schemas/bookingSchema";
@@ -61,11 +60,11 @@ function BookingsPage() {
             (s) => s.id === values.sessionId
         );
         addBooking.mutate({
-            sessionId: Number(values.sessionId),
-            tuteeId: 2,
-            tutorId: selectedSession?.tutorId ?? 1,
+            sessionId: values.sessionId,
+            tuteeId: "2",
+            tutorId: selectedSession?.tutor?.name ?? "1",
             status: BookingStatus.REQUESTED,
-            requestedAt: new Date().toISOString(), // a STRING, not a Date
+            requestedAt: new Date().toISOString(),
             note: values.note,
         });
     };
@@ -77,7 +76,7 @@ function BookingsPage() {
     if (isError) {
         return (
             <div className="rounded-3xl bg-red-50 p-8 text-red-700 dark:bg-red-900 dark:text-red-200">
-                Could not load bookings. Is json-server running on port 3001?
+                Could not load bookings.
             </div>
         );
     }
@@ -158,9 +157,9 @@ function BookingsPage() {
             <div className="grid gap-4 sm:grid-cols-2">
                 {(bookings ?? []).map((booking) => {
                     const session = (sessions ?? []).find(
-                        (s) => s.id === String(booking.sessionId)
+                        (s) => s.id === booking.sessionId
                     );
-                    const tutor = users.find((u) => u.id === booking.tutorId);
+                    const tutor = session?.tutor;
                     return (
                         <div
                             key={booking.id}

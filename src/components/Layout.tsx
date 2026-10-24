@@ -8,7 +8,7 @@ function Layout() {
     // AND a refresh remembers it. Layout no longer owns it.
     const isDarkMode = useUiStore((state) => state.isDarkMode);
     const toggleDarkMode = useUiStore((state) => state.toggleDarkMode);
-    const userName = useAuthStore((state) => state.userName);
+    const userName = useAuthStore((state) => state.user?.name ?? null);
     const logout = useAuthStore((state) => state.logout);
 
     // The classes every nav link shares, then the two variants
