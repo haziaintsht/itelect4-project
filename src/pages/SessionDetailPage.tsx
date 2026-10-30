@@ -35,8 +35,6 @@ function SessionDetailPage() {
         enabled: token !== null,
     });
 
-    // Only a booking you made counts as "your booking" -- a tutor's list also
-    // holds the requests other people made on their sessions.
     const booking = (allBookings ?? []).find(
         (b) => b.session?.id === session?.id && b.tutee?.id === userId
     );

@@ -19,7 +19,6 @@ import Avatar from "./Avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-// Guests see the tutee links too: Bookings and Study Planner send them to log in.
 const TUTEE_LINKS = [
     { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
     { to: "/sessions", label: "Sessions", icon: BookOpen, end: false },

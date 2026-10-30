@@ -4,14 +4,11 @@
   "description": "Peer Tutoring Booking Platform -- React + Vite frontend for itelect4-backend",
   "scripts": {
     "dev": "vite",
-    "start": "vite",
     "build": "tsc --noEmit && vite build",
     "lint": "eslint .",
     "test": "vitest run --reporter=verbose",
     "test:watch": "vitest"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {

@@ -44,8 +44,6 @@ function StudyPlanPage() {
         studyPlan.mutate(values.prompt);
     };
 
-    // The Sessions page keeps its search box in the UI store, so filling it
-    // here opens that page already filtered to the suggested subject.
     const findSessions = (subject: string): void => {
         setSearchTerm(subject);
         navigate("/sessions");

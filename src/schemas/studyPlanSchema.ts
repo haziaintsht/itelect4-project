@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// Same limits as aiRequestSchema on the backend, checked here first so the
-// student sees the problem instantly instead of after a round trip.
 export const studyPlanSchema = z.object({
   prompt: z
     .string()

@@ -47,8 +47,6 @@ export interface Booking {
     note: string;
 }
 
-// What the API sends back: ids are strings, dates arrive as ISO strings,
-// and the tutor/tutee/session references are populated objects.
 export type ApiSession = Omit<Session, "createdAt" | "tutorId" | "tuteeId"> & {
     createdAt: string;
     tutor: Pick<User, "id" | "name" | "email"> | null;
@@ -78,7 +76,6 @@ export interface AuthResponse {
     user: AuthUser;
 }
 
-// Mirrors studyPlanSchema in itelect4-backend/src/schemas/studyPlan.ts.
 export type StudyLevel = "beginner" | "intermediate" | "advanced";
 
 export interface StudyPlan {

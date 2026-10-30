@@ -35,8 +35,6 @@ function RequestsPage() {
     const queryClient = useQueryClient();
     const userId = useAuthStore((state) => state.user?.id);
 
-    // GET /api/bookings returns the bookings you made and the ones made
-    // with you; this page only shows the second kind.
     const { data: bookings, isPending, isError, error } = useQuery<ApiBooking[]>({
         queryKey: ["bookings"],
         queryFn: fetchBookings,

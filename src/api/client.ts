@@ -36,8 +36,6 @@ interface RequestOptions {
     body?: unknown;
 }
 
-// Every call goes through here: JSON body, Bearer token when logged in,
-// and the API's own error message when the response is not ok.
 async function request<T>(
     path: string,
     fallback: string,
@@ -54,7 +52,6 @@ async function request<T>(
     if (!res.ok) {
         throw await failure(res, fallback);
     }
-    // 204 No Content (DELETE) has no body to parse.
     return res.status === 204 ? (undefined as T) : res.json();
 }
 
@@ -107,7 +104,6 @@ export function deleteBooking(id: string): Promise<void> {
     });
 }
 
-// The reply's tutor is a bare id (not populated), so only id/title are typed.
 export function createSession(
     newSession: NewSession
 ): Promise<Pick<ApiSession, "id" | "title">> {

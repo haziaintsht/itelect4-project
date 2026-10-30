@@ -7,7 +7,6 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      // import.meta.dirname, not __dirname: this file is an ES module.
       "@": path.resolve(import.meta.dirname, "./src"),
     },
   },
