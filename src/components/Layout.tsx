@@ -1,8 +1,3 @@
-
-
-
-
-
 import { useLayoutEffect } from "react";
 import { Link, NavLink, Outlet } from "react-router";
 import {
@@ -12,6 +7,7 @@ import {
     LayoutDashboard,
     LogIn,
     LogOut,
+    Sparkles,
 } from "lucide-react";
 import useAuthStore from "../store/authStore";
 import useUiStore from "../store/uiStore";
@@ -24,6 +20,7 @@ const NAV_LINKS = [
     { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
     { to: "/sessions", label: "Sessions", icon: BookOpen, end: false },
     { to: "/bookings", label: "Bookings", icon: CalendarCheck, end: false },
+    { to: "/study-plan", label: "Study Planner", icon: Sparkles, end: false },
 ];
 
 function Layout() {
@@ -31,14 +28,10 @@ function Layout() {
     const userName = useAuthStore((state) => state.user?.name ?? null);
     const logout = useAuthStore((state) => state.logout);
 
-    
-    
-    
     useLayoutEffect(() => {
         document.documentElement.classList.toggle("dark", isDarkMode);
     }, [isDarkMode]);
 
-    
     const linkClass = ({ isActive }: { isActive: boolean }): string =>
         cn(
             "inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
@@ -58,7 +51,6 @@ function Layout() {
                         Peer Tutoring
                     </Link>
 
-                    {}
                     <nav className="order-3 flex w-full gap-1 overflow-x-auto md:order-2 md:w-auto">
                         {NAV_LINKS.map(({ to, label, icon: Icon, end }) => (
                             <NavLink key={to} to={to} end={end} className={linkClass}>
@@ -92,7 +84,7 @@ function Layout() {
             </header>
 
             <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:py-10">
-                <Outlet /> {}
+                <Outlet />
             </main>
 
             <footer className="border-t">

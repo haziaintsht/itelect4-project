@@ -4,6 +4,7 @@ import type {
     ApiSession,
     AuthResponse,
     NewBooking,
+    StudyPlan,
     UserRole,
 } from "../types/index";
 
@@ -28,74 +29,61 @@ async function failure(res: Response, fallback: string): Promise<Error> {
     return new Error(message ?? fallback);
 }
 
-export async function login(
-    email: string,
-    password: string
-): Promise<AuthResponse> {
-    const res = await fetch(`${API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+// Every call goes through here: JSON body, Bearer token when logged in,
+// and the API's own error message when the response is not ok.
+async function request<T>(
+    path: string,
+    fallback: string,
+    body?: unknown
+): Promise<T> {
+    const res = await fetch(`${API_URL}${path}`, {
+        method: body === undefined ? "GET" : "POST",
+        headers: {
+            ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+            ...authHeaders(),
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
     });
     if (!res.ok) {
-        throw await failure(res, "Login failed. Try again.");
+        throw await failure(res, fallback);
     }
     return res.json();
 }
 
-export async function register(
+export function login(email: string, password: string): Promise<AuthResponse> {
+    return request("/api/auth/login", "Login failed. Try again.", { email, password });
+}
+
+export function register(
     name: string,
     email: string,
     password: string,
     role: UserRole
 ): Promise<AuthResponse> {
-    const res = await fetch(`${API_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
+    return request("/api/auth/register", "Registration failed. Try again.", {
+        name,
+        email,
+        password,
+        role,
     });
-    if (!res.ok) {
-        throw await failure(res, "Registration failed. Try again.");
-    }
-    return res.json();
 }
 
-export async function fetchSessions(): Promise<ApiSession[]> {
-    const res = await fetch(`${API_URL}/api/sessions`);
-    if (!res.ok) {
-        throw await failure(res, "Could not load sessions");
-    }
-    return res.json();
+export function fetchSessions(): Promise<ApiSession[]> {
+    return request("/api/sessions", "Could not load sessions");
 }
 
-export async function fetchSessionById(id: string): Promise<ApiSession> {
-    const res = await fetch(`${API_URL}/api/sessions/${id}`);
-    if (!res.ok) {
-        throw await failure(res, `Could not load session ${id}`);
-    }
-    return res.json();
+export function fetchSessionById(id: string): Promise<ApiSession> {
+    return request(`/api/sessions/${id}`, `Could not load session ${id}`);
 }
 
-export async function fetchBookings(): Promise<ApiBooking[]> {
-    const res = await fetch(`${API_URL}/api/bookings`, {
-        headers: authHeaders(),
-    });
-    if (!res.ok) {
-        throw await failure(res, "Could not load bookings");
-    }
-    return res.json();
+export function fetchBookings(): Promise<ApiBooking[]> {
+    return request("/api/bookings", "Could not load bookings");
 }
 
-export async function createBooking(
-    newBooking: NewBooking
-): Promise<ApiBooking> {
-    const res = await fetch(`${API_URL}/api/bookings`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify(newBooking),
-    });
-    if (!res.ok) {
-        throw await failure(res, "Could not save the booking");
-    }
-    return res.json();
+export function createBooking(newBooking: NewBooking): Promise<ApiBooking> {
+    return request("/api/bookings", "Could not save the booking", newBooking);
+}
+
+export function askAi(prompt: string): Promise<StudyPlan> {
+    return request("/api/ai", "The Study Planner could not answer. Try again.", { prompt });
 }

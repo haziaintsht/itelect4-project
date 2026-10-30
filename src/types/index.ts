@@ -1,4 +1,3 @@
-
 export enum UserRole {
     TUTOR = "tutor",
     TUTEE = "tutee"
@@ -14,7 +13,6 @@ export enum SessionType {
     ONE_ON_ONE = "one-on-one",
     GROUP = "group"
 }
-
 
 export interface User {
     id: string;
@@ -49,32 +47,11 @@ export interface Booking {
     note: string;
 }
 
-
-export type ID = number | string;
-export type StringOrNumber = string | number;
-
-
-export interface ApiResponse<T> {
-    success: boolean;
-    data: T;
-    message?: string;
-}
-
-
-export type SessionUpdate = Partial<Session>;
-export type PublicTutorView = Omit<User, "email">;
-export type StatusCounts = Record<BookingStatus, number>;
-
-
-
-
-
-
-
-
+// What the API sends back: ids are strings, dates arrive as ISO strings,
+// and the tutor/tutee/session references are populated objects.
 export type ApiSession = Omit<Session, "createdAt" | "tutorId" | "tuteeId"> & {
-    createdAt: string; 
-    tutor: Pick<User, "id" | "name" | "email"> | null; 
+    createdAt: string;
+    tutor: Pick<User, "id" | "name" | "email"> | null;
 };
 
 export type ApiBooking = Omit<
@@ -84,18 +61,24 @@ export type ApiBooking = Omit<
     session: Pick<Session, "id" | "title" | "subject"> | null;
     tutee: Pick<User, "id" | "name"> | null;
     tutor: Pick<User, "id" | "name"> | null;
-    createdAt: string; 
+    createdAt: string;
 };
 
-
-
-
 export type NewBooking = { session: string; note: string };
-
 
 export type AuthUser = Pick<User, "id" | "name" | "email" | "role">;
 
 export interface AuthResponse {
-    token: string; 
+    token: string;
     user: AuthUser;
+}
+
+// Mirrors studyPlanSchema in itelect4-backend/src/schemas/studyPlan.ts.
+export type StudyLevel = "beginner" | "intermediate" | "advanced";
+
+export interface StudyPlan {
+    summary: string;
+    focusTopics: string[];
+    level: StudyLevel;
+    suggestedSubject: string;
 }

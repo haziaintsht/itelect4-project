@@ -1,4 +1,3 @@
-
 import { Route, Routes } from "react-router";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -8,6 +7,7 @@ import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import SessionDetailPage from "./pages/SessionDetailPage";
 import SessionsPage from "./pages/SessionsPage";
+import StudyPlanPage from "./pages/StudyPlanPage";
 
 function App() {
     return (
@@ -19,6 +19,7 @@ function App() {
                 <Route path="login" element={<LoginPage />} />
                 <Route element={<ProtectedRoute />}>
                     <Route path="bookings" element={<BookingsPage />} />
+                    <Route path="study-plan" element={<StudyPlanPage />} />
                 </Route>
                 <Route path="*" element={<NotFoundPage />} />
             </Route>

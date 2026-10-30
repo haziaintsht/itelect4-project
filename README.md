@@ -3,7 +3,7 @@
 A simple semester-ready web app for connecting tutors and tutees through session
 requests, booking statuses, and tutor profiles. The project demonstrates a
 list-to-detail experience, role-based users, a multi-step booking lifecycle, a
-live activity counter, and a simple generative-text feature for study suggestions.
+live activity counter, and an AI Study Planner powered by Google Gemini.
 
 ## Project Highlights
 - **Core Entities**: `User`, `Session`, and `Booking`
@@ -11,7 +11,10 @@ live activity counter, and a simple generative-text feature for study suggestion
 - **Booking Lifecycle**: `requested -> confirmed -> completed`
 - **Real accounts**: register and log in with email + password; the backend signs a JWT
 - **Live Feature**: automatic activity counter updates
-- **Generative Text**: AI-style study tip generation
+- **AI Study Planner** (`/study-plan`, login required): describe what you are stuck on and
+  Gemini returns a summary, 1–3 focus topics, a level (`beginner` / `intermediate` /
+  `advanced`) and a suggested subject that opens the matching sessions. The browser only
+  talks to the backend's `POST /api/ai`; the Gemini key never leaves the server.
 
 ## Tech Stack
 - React 19 · React Router 8 (SPA routing)
@@ -19,13 +22,15 @@ live activity counter, and a simple generative-text feature for study suggestion
 - Zustand (with `persist`) — auth + UI state, saved to localStorage
 - Vite (dev server + bundler) · Tailwind CSS
 - React Hook Form + Zod (`@hookform/resolvers`) — form values + validation
-- Shadcn UI (Base UI + Nova preset) — Button, Input and Label, owned in `src/components/ui/`
+- Shadcn UI (Base UI + Nova preset) — Button, Input, Label and Textarea, owned in `src/components/ui/`
 - **API**: [itelect4-backend](https://github.com/haziaintsht/itelect4-backend) — Express + MongoDB + JWT.
   Every call to it lives in `src/api/client.ts`.
 
 > The booking form's rules live in `src/schemas/bookingSchema.ts` (Zod), the
 > form type is derived with `z.infer`, and the schema is wired into the form
-> with `zodResolver`. Invalid submissions never reach the API.
+> with `zodResolver`. Invalid submissions never reach the API. The Study
+> Planner does the same with `src/schemas/studyPlanSchema.ts` (20–2000
+> characters, the same limits the backend enforces).
 
 ## Installation
 
