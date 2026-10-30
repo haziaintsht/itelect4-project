@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, CalendarPlus, LoaderCircle, Sparkles, Target } from "lucide-react";
 import PageHeader from "../components/PageHeader";
@@ -29,14 +29,14 @@ function StudyPlanPage() {
         register,
         handleSubmit,
         setValue,
-        watch,
+        control,
         formState: { errors },
     } = useForm<StudyPlanFormValues>({
         resolver: zodResolver(studyPlanSchema),
         mode: "onTouched",
         defaultValues: { prompt: "" },
     });
-    const length = watch("prompt").length;
+    const length = useWatch({ control, name: "prompt" }).length;
 
     const studyPlan = useMutation({ mutationFn: askAi });
 

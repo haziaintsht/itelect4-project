@@ -1,9 +1,28 @@
 # Peer Tutoring Booking Platform
 
+[![CI](https://github.com/haziaintsht/itelect4-project/actions/workflows/ci.yml/badge.svg)](https://github.com/haziaintsht/itelect4-project/actions/workflows/ci.yml)
+
 A simple semester-ready web app for connecting tutors and tutees through session
 requests, booking statuses, and tutor profiles. The project demonstrates a
 list-to-detail experience, role-based users, a multi-step booking lifecycle, a
 live activity counter, and an AI Study Planner powered by Google Gemini.
+
+- **Live site:** https://itelect4-project-sigma.vercel.app
+- **Backend repo:** [itelect4-backend](https://github.com/haziaintsht/itelect4-backend)
+
+## Architecture
+
+```mermaid
+flowchart LR
+  fe["itelect4-project<br/>React + Vite on Vercel"]
+  be["itelect4-backend<br/>Express on Vercel"]
+  db[("MongoDB Atlas")]
+  ai["Gemini API"]
+
+  fe -- "fetch + Bearer token" --> be
+  be -- "Mongoose" --> db
+  be -- "GEMINI_API_KEY" --> ai
+```
 
 ## Project Highlights
 - **Core Entities**: `User`, `Session`, and `Booking`
@@ -67,6 +86,26 @@ The app calls `http://localhost:4000` unless `VITE_API_URL` says otherwise
 npm run build      # must finish with ZERO TypeScript errors
 ```
 
+## Testing and CI
+
+```bash
+npm test             # run every test once
+npm run test:watch   # re-run tests as files change
+npm run lint         # ESLint
+```
+
+The tests use Vitest, jsdom and React Testing Library, and they never reach the real API.
+
+| File | What it checks |
+| --- | --- |
+| `src/components/SessionCard.test.tsx` | What a session card shows for its props, including a missing tutor |
+| `src/hooks/useToggle.test.ts`, `src/hooks/usePrevious.test.ts` | State changes in the custom hooks |
+| `src/pages/LoginPage.test.tsx` | Log in stays disabled until the form is filled, nothing is sent while it is incomplete, and API errors are shown |
+| `src/pages/StudyPlanPage.test.tsx` | The schema blocks a short prompt before any request, and every field of a reply is shown |
+
+GitHub Actions (`.github/workflows/ci.yml`) runs `npm ci`, `npm run lint`, `npm test` and `npm run build`
+on every push.
+
 ## Deploy (Vercel)
 
 Deploy the backend first — this app needs its address.
@@ -78,3 +117,11 @@ Deploy the backend first — this app needs its address.
 
 `vercel.json` sends every path to `index.html`, so refreshing `/bookings` or
 `/sessions/:id` loads the app instead of a Vercel 404.
+
+## AI Disclosure
+
+- **In the app:** the Study Planner sends the text a student types to Google Gemini through the
+  backend. Its replies are AI-generated and can be wrong, and the page says so.
+- **In development:** Claude Code, an AI coding assistant, was used to help write, test and document
+  this project, including the Study Planner, the tutor interface, the automated tests and the CI
+  setup. I directed the work and am responsible for what is submitted.
