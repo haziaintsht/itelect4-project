@@ -1,21 +1,16 @@
-
-
-
-
-
 import { ArrowRight, BookOpen, User, Users } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import Avatar from "./Avatar";
 import { SessionType } from "../types/index";
 import type { ApiSession } from "../types/index";
 
-interface ComplaintCardProps {
+interface SessionCardProps {
     session: ApiSession;
     onSelect?: (session: ApiSession) => void;
     variant?: "default" | "compact";
 }
 
-function ComplaintCard({ session, onSelect, variant = "default" }: ComplaintCardProps) {
+function SessionCard({ session, onSelect, variant = "default" }: SessionCardProps) {
     const isGroup = session.sessionType === SessionType.GROUP;
     const tutorName = session.tutor?.name ?? "Unknown tutor";
 
@@ -74,4 +69,4 @@ function ComplaintCard({ session, onSelect, variant = "default" }: ComplaintCard
     );
 }
 
-export default ComplaintCard;
+export default SessionCard;

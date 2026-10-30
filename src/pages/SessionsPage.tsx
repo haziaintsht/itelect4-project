@@ -1,12 +1,8 @@
-
-
-
-
 import React, { useRef } from "react";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Crosshair, Search, SearchX } from "lucide-react";
-import ComplaintCard from "../components/ComplaintCard";
+import SessionCard from "../components/SessionCard";
 import PageHeader from "../components/PageHeader";
 import ErrorAlert from "../components/ErrorAlert";
 import EmptyState from "../components/EmptyState";
@@ -18,13 +14,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 function SessionsPage() {
-    
     const searchTerm = useUiStore((state) => state.searchTerm);
     const setSearchTerm = useUiStore((state) => state.setSearchTerm);
     const previousSearch = usePrevious(searchTerm);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
-    
     const { data, isPending, isError, error } = useQuery<ApiSession[]>({
         queryKey: ["sessions"],
         queryFn: fetchSessions,
@@ -68,7 +62,6 @@ function SessionsPage() {
         );
     }
 
-    
     const filteredSessions = data.filter((session) =>
         session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         session.subject.toLowerCase().includes(searchTerm.toLowerCase())
@@ -133,7 +126,7 @@ function SessionsPage() {
                             to={`/sessions/${session.id}`}
                             className="rounded-2xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
                         >
-                            <ComplaintCard session={session} />
+                            <SessionCard session={session} />
                         </Link>
                     ))}
                 </div>

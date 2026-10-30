@@ -1,10 +1,8 @@
 {
   "name": "itelect4-project",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Peer Tutoring Booking Platform -- React + Vite frontend for itelect4-backend",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite",
     "start": "vite",
     "build": "tsc --noEmit && vite build"
@@ -39,7 +37,6 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.2",
     "tailwindcss": "^4.3.3",
-    "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
     "vite": "^5.4.10"
   }

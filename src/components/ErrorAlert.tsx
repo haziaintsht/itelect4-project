@@ -1,6 +1,3 @@
-
-
-
 import { CircleAlert } from "lucide-react";
 
 function ErrorAlert({ message }: { message: string }) {

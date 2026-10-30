@@ -1,4 +1,3 @@
-
 import { Link } from "react-router";
 import { ArrowLeft } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";

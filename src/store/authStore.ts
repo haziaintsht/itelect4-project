@@ -1,14 +1,6 @@
-
-
-
-
-
-
-
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { AuthResponse, AuthUser } from "../types/index";
-
 
 interface AuthState {
     token: string | null;
@@ -16,8 +8,6 @@ interface AuthState {
     setAuth: (auth: AuthResponse) => void;
     logout: () => void;
 }
-
-
 
 const useAuthStore = create<AuthState>()(
     persist(
@@ -28,9 +18,8 @@ const useAuthStore = create<AuthState>()(
             logout: () => set({ token: null, user: null }),
         }),
         {
-            name: "itelect4-auth", 
+            name: "itelect4-auth",
             partialize: (state) => ({
-                
                 token: state.token,
                 user: state.user,
             }),

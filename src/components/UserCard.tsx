@@ -1,6 +1,3 @@
-
-
-
 import type { User } from "../types/index";
 import Avatar from "./Avatar";
 import { Button } from "@/components/ui/button";

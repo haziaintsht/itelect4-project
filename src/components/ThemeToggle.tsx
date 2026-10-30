@@ -1,7 +1,3 @@
-
-
-
-
 import { flushSync } from "react-dom";
 import { Moon, Sun } from "lucide-react";
 import useUiStore from "../store/uiStore";
@@ -15,16 +11,11 @@ function ThemeToggle() {
             "(prefers-reduced-motion: reduce)"
         ).matches;
 
-        
-        
         if (typeof document.startViewTransition !== "function" || prefersLessMotion) {
             toggleDarkMode();
             return;
         }
 
-        
-        
-        
         const rect = e.currentTarget.getBoundingClientRect();
         const x = e.clientX || rect.left + rect.width / 2;
         const y = e.clientY || rect.top + rect.height / 2;
@@ -37,9 +28,6 @@ function ThemeToggle() {
         root.style.setProperty("--reveal-y", `${y}px`);
         root.style.setProperty("--reveal-r", `${radius}px`);
 
-        
-        
-        
         document.startViewTransition(() => {
             flushSync(() => toggleDarkMode());
         });

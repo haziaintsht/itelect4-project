@@ -21,12 +21,9 @@ import type { ApiBooking, ApiSession } from "../types/index";
 function BookingsPage() {
     const queryClient = useQueryClient();
 
-    
-    
     const [searchParams] = useSearchParams();
     const preselectedId = searchParams.get("session") ?? "";
 
-    
     const {
         register,
         handleSubmit,
@@ -39,37 +36,30 @@ function BookingsPage() {
         defaultValues: { sessionId: preselectedId, note: "" },
     });
 
-    
     const { data: bookings, isPending, isError, error } = useQuery<ApiBooking[]>({
         queryKey: ["bookings"],
         queryFn: fetchBookings,
     });
 
-    
     const { data: sessions } = useQuery<ApiSession[]>({
         queryKey: ["sessions"],
         queryFn: fetchSessions,
     });
 
-    
-    
     useEffect(() => {
         if (preselectedId && sessions?.some((s) => s.id === preselectedId)) {
             setValue("sessionId", preselectedId);
         }
     }, [preselectedId, sessions, setValue]);
 
-    
     const addBooking = useMutation({
         mutationFn: createBooking,
         onSuccess: () => {
-            
             queryClient.invalidateQueries({ queryKey: ["bookings"] });
-            reset(); 
+            reset();
         },
     });
 
-    
     const onSubmit = (values: BookingFormValues): void => {
         addBooking.mutate({ session: values.sessionId, note: values.note });
     };
@@ -163,7 +153,6 @@ function BookingsPage() {
                         )}
                     </div>
 
-                    {}
                     <Button
                         type="submit"
                         disabled={addBooking.isPending}

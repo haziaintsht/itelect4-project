@@ -1,16 +1,8 @@
-
-
-
 import { z } from "zod";
 
 export const bookingSchema = z.object({
-  
   sessionId: z.string().min(1, "Choose a session."),
 
-  
-  
-  
-  
   note: z
     .string()
     .min(1, "Tell the tutor what you need help with.")
@@ -21,8 +13,5 @@ export const bookingSchema = z.object({
       "Write at least three words so the tutor understands what you need."
     ),
 });
-
-
-
 
 export type BookingFormValues = z.infer<typeof bookingSchema>;

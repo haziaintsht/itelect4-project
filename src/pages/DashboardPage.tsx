@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Activity, ArrowRight, BookOpen, CalendarCheck, Search, Send, Users } from "lucide-react";
-import ComplaintCard from "../components/ComplaintCard";
-import UserCard from "../components/Usercard";
+import SessionCard from "../components/SessionCard";
+import UserCard from "../components/UserCard";
 import EmptyState from "../components/EmptyState";
 import useToggle from "../hooks/useToggle";
 import useAuthStore from "../store/authStore";
@@ -75,7 +75,6 @@ function DashboardPage() {
 
     return (
         <div className="space-y-10">
-            {}
             <section className="relative overflow-hidden rounded-3xl border bg-card p-8 shadow-sm sm:p-10">
                 <div
                     aria-hidden="true"
@@ -105,7 +104,6 @@ function DashboardPage() {
                 </div>
             </section>
 
-            {}
             <section className="grid gap-4 sm:grid-cols-3">
                 {stats.map(({ label, value, hint, icon: Icon, live }) => (
                     <div key={label} className="rounded-2xl border bg-card p-5 shadow-sm">
@@ -131,7 +129,6 @@ function DashboardPage() {
                 ))}
             </section>
 
-            {}
             <section className="grid gap-6 lg:grid-cols-3">
                 <div className="space-y-4 lg:col-span-2">
                     <div className="flex items-center justify-between">
@@ -152,7 +149,7 @@ function DashboardPage() {
                         <div className="space-y-3">
                             {(sessions ?? []).slice(0, 3).map((session) => (
                                 <Link key={session.id} to={`/sessions/${session.id}`} className="block rounded-xl">
-                                    <ComplaintCard session={session} variant="compact" />
+                                    <SessionCard session={session} variant="compact" />
                                 </Link>
                             ))}
                         </div>

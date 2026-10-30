@@ -5,7 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-
 export function initials(name: string): string {
   return name
     .split(" ")
@@ -14,7 +13,6 @@ export function initials(name: string): string {
     .map((part) => part[0].toUpperCase())
     .join("")
 }
-
 
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {

@@ -1,6 +1,3 @@
-
-
-
 import React from "react";
 import { BookingStatus } from "../types/index";
 import { cn } from "@/lib/utils";
@@ -9,8 +6,6 @@ interface StatusBadgeProps {
     statusType: BookingStatus;
     children?: React.ReactNode;
 }
-
-
 
 const STATUS_STYLES: Record<BookingStatus, string> = {
     [BookingStatus.REQUESTED]:

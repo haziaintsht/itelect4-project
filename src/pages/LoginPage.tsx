@@ -13,7 +13,6 @@ import { cn } from "@/lib/utils";
 
 type Mode = "login" | "register";
 
-
 const ROLE_OPTIONS = [
     { value: UserRole.TUTEE, title: "Tutee", hint: "I want help", icon: BookOpen },
     { value: UserRole.TUTOR, title: "Tutor", hint: "I can teach", icon: GraduationCap },

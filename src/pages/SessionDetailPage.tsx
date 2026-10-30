@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, CalendarDays, CalendarPlus, Sparkles, User, Users, Video } from "lucide-react";
 import StatusBadge from "../components/StatusBadge";
-import UserCard from "../components/Usercard";
+import UserCard from "../components/UserCard";
 import ErrorAlert from "../components/ErrorAlert";
 import { fetchSessionById, fetchBookings } from "../api/client";
 import useAuthStore from "../store/authStore";
@@ -52,17 +52,6 @@ function SessionDetailPage() {
                 : undefined,
         [session]
     );
-
-    const generatedSuggestion = useMemo(() => {
-        if (session === undefined || tutor === undefined || booking === undefined) {
-            return "";
-        }
-        const topic = session.subject.toLowerCase();
-        const tutorName = tutor.name.split(" ")[0];
-        const note = booking.note.toLowerCase();
-
-        return `${tutorName} suggests a focused ${topic} session that starts with a 5-minute review of the toughest concept, follows with one worked example, and ends with a quick practice quiz. Since the booking note says "${note}", the plan should emphasize confidence-building and clear step-by-step explanations.`;
-    }, [booking, session, tutor]);
 
     const backLink = (
         <Link to="/sessions" className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "-ml-2")}>
@@ -163,15 +152,19 @@ function SessionDetailPage() {
                         </section>
                     )}
 
-                    {generatedSuggestion && (
-                        <section className="rounded-2xl border border-primary/25 bg-accent p-6">
-                            <h2 className="flex items-center gap-2 text-sm font-semibold text-primary">
-                                <Sparkles className="size-4" />
-                                AI study tip
-                            </h2>
-                            <p className="mt-2 text-sm leading-6 text-foreground">{generatedSuggestion}</p>
-                        </section>
-                    )}
+                    <section className="rounded-2xl border border-primary/25 bg-accent p-6">
+                        <h2 className="flex items-center gap-2 text-sm font-semibold text-primary">
+                            <Sparkles className="size-4" />
+                            Not sure where to start?
+                        </h2>
+                        <p className="mt-2 text-sm leading-6 text-foreground">
+                            Describe what you are stuck on and the Study Planner will suggest
+                            the topics to focus on first.
+                        </p>
+                        <Link to="/study-plan" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
+                            Open the Study Planner
+                        </Link>
+                    </section>
                 </div>
 
                 {tutor && (

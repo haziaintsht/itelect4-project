@@ -1,6 +1,3 @@
-
-
-
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -14,18 +11,15 @@ interface UiState {
 const useUiStore = create<UiState>()(
     persist(
         (set) => ({
-            
-            
             isDarkMode: window.matchMedia("(prefers-color-scheme: dark)").matches,
             searchTerm: "",
-            
+
             toggleDarkMode: () =>
                 set((state) => ({ isDarkMode: !state.isDarkMode })),
-            
+
             setSearchTerm: (term) => set({ searchTerm: term }),
         }),
-        
-        
+
         {
             name: "itelect4-ui",
             partialize: (state) => ({ isDarkMode: state.isDarkMode }),
