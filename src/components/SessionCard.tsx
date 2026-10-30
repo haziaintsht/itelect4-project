@@ -6,20 +6,16 @@ import type { ApiSession } from "../types/index";
 
 interface SessionCardProps {
     session: ApiSession;
-    onSelect?: (session: ApiSession) => void;
     variant?: "default" | "compact";
 }
 
-function SessionCard({ session, onSelect, variant = "default" }: SessionCardProps) {
+function SessionCard({ session, variant = "default" }: SessionCardProps) {
     const isGroup = session.sessionType === SessionType.GROUP;
     const tutorName = session.tutor?.name ?? "Unknown tutor";
 
     if (variant === "compact") {
         return (
-            <div
-                onClick={() => onSelect?.(session)}
-                className="group flex items-center gap-4 rounded-xl border bg-card p-4 transition-colors hover:border-primary/40"
-            >
+            <div className="group flex items-center gap-4 rounded-xl border bg-card p-4 transition-colors hover:border-primary/40">
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-accent text-primary">
                     <BookOpen className="size-5" />
                 </span>
@@ -37,10 +33,7 @@ function SessionCard({ session, onSelect, variant = "default" }: SessionCardProp
     }
 
     return (
-        <div
-            onClick={() => onSelect?.(session)}
-            className="group flex h-full flex-col rounded-2xl border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
-        >
+        <div className="group flex h-full flex-col rounded-2xl border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
             <div className="flex items-center justify-between gap-3">
                 <span className="truncate rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-primary">
                     {session.subject}

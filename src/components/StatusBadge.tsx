@@ -1,11 +1,5 @@
-import React from "react";
 import { BookingStatus } from "../types/index";
 import { cn } from "@/lib/utils";
-
-interface StatusBadgeProps {
-    statusType: BookingStatus;
-    children?: React.ReactNode;
-}
 
 const STATUS_STYLES: Record<BookingStatus, string> = {
     [BookingStatus.REQUESTED]:
@@ -15,7 +9,7 @@ const STATUS_STYLES: Record<BookingStatus, string> = {
         "bg-sky-500/10 text-sky-700 ring-sky-500/25 dark:text-sky-400",
 };
 
-const StatusBadge: React.FC<StatusBadgeProps> = ({ statusType, children }) => {
+function StatusBadge({ statusType }: { statusType: BookingStatus }) {
     return (
         <span
             className={cn(
@@ -25,9 +19,8 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ statusType, children }) => {
         >
             <span className="size-1.5 rounded-full bg-current" />
             {statusType}
-            {children}
         </span>
     );
-};
+}
 
 export default StatusBadge;
