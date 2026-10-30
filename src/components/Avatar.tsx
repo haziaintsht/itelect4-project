@@ -2,7 +2,6 @@ import { cn, initials } from "@/lib/utils";
 
 const SIZES = {
     sm: "size-7 text-[11px]",
-    md: "size-9 text-xs",
     lg: "size-11 text-sm",
 };
 
@@ -11,7 +10,7 @@ interface AvatarProps {
     size?: keyof typeof SIZES;
 }
 
-function Avatar({ name, size = "md" }: AvatarProps) {
+function Avatar({ name, size = "sm" }: AvatarProps) {
     return (
         <span
             aria-hidden="true"
