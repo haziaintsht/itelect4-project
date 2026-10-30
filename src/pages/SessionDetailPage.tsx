@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Link, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, CalendarDays, CalendarPlus, Sparkles, User, Users, Video } from "lucide-react";
+import { ArrowLeft, CalendarDays, CalendarPlus, Inbox, Sparkles, User, Users, Video } from "lucide-react";
 import StatusBadge from "../components/StatusBadge";
 import UserCard from "../components/UserCard";
 import ErrorAlert from "../components/ErrorAlert";
@@ -15,6 +15,8 @@ import { cn, formatDate } from "@/lib/utils";
 function SessionDetailPage() {
     const { sessionId } = useParams<{ sessionId: string }>();
     const token = useAuthStore((state) => state.token);
+    const userId = useAuthStore((state) => state.user?.id);
+    const isTutor = useAuthStore((state) => state.user?.role === UserRole.TUTOR);
 
     const {
         data: session,
@@ -33,9 +35,14 @@ function SessionDetailPage() {
         enabled: token !== null,
     });
 
+    // Only a booking you made counts as "your booking" -- a tutor's list also
+    // holds the requests other people made on their sessions.
     const booking = (allBookings ?? []).find(
-        (b) => b.session?.id === session?.id
+        (b) => b.session?.id === session?.id && b.tutee?.id === userId
     );
+    const requestCount = (allBookings ?? []).filter(
+        (b) => b.session?.id === session?.id && b.tutor?.id === userId
+    ).length;
 
     const tutor = useMemo<UserType | undefined>(
         () =>
@@ -80,6 +87,7 @@ function SessionDetailPage() {
 
     const isGroup = session.sessionType === SessionType.GROUP;
     const tutorFirstName = tutor?.name.split(" ")[0] ?? "the tutor";
+    const isOwnSession = isTutor && session.tutor?.id === userId;
 
     return (
         <div className="space-y-6">
@@ -121,7 +129,28 @@ function SessionDetailPage() {
 
             <div className="grid gap-6 lg:grid-cols-3">
                 <div className="space-y-6 lg:col-span-2">
-                    {booking ? (
+                    {isTutor ? (
+                        isOwnSession ? (
+                            <section className="flex flex-col gap-4 rounded-2xl border bg-card p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h2 className="font-semibold text-foreground">This is your session</h2>
+                                    <p className="mt-1 text-sm text-muted-foreground">
+                                        {requestCount === 0
+                                            ? "No tutee has requested it yet."
+                                            : `${requestCount} booking request${requestCount === 1 ? "" : "s"} so far.`}
+                                    </p>
+                                </div>
+                                <Link to="/requests" className={cn(buttonVariants(), "h-10 shrink-0 px-4")}>
+                                    <Inbox />
+                                    Review requests
+                                </Link>
+                            </section>
+                        ) : (
+                            <p className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">
+                                You are logged in as a tutor. Tutees can request this session from {tutorFirstName}.
+                            </p>
+                        )
+                    ) : booking ? (
                         <section className="rounded-2xl border bg-card p-6 shadow-sm">
                             <div className="flex items-center justify-between gap-3">
                                 <h2 className="font-semibold text-foreground">Your booking</h2>
@@ -152,25 +181,27 @@ function SessionDetailPage() {
                         </section>
                     )}
 
-                    <section className="rounded-2xl border border-primary/25 bg-accent p-6">
-                        <h2 className="flex items-center gap-2 text-sm font-semibold text-primary">
-                            <Sparkles className="size-4" />
-                            Not sure where to start?
-                        </h2>
-                        <p className="mt-2 text-sm leading-6 text-foreground">
-                            Describe what you are stuck on and the Study Planner will suggest
-                            the topics to focus on first.
-                        </p>
-                        <Link to="/study-plan" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
-                            Open the Study Planner
-                        </Link>
-                    </section>
+                    {!isTutor && (
+                        <section className="rounded-2xl border border-primary/25 bg-accent p-6">
+                            <h2 className="flex items-center gap-2 text-sm font-semibold text-primary">
+                                <Sparkles className="size-4" />
+                                Not sure where to start?
+                            </h2>
+                            <p className="mt-2 text-sm leading-6 text-foreground">
+                                Describe what you are stuck on and the Study Planner will suggest
+                                the topics to focus on first.
+                            </p>
+                            <Link to="/study-plan" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
+                                Open the Study Planner
+                            </Link>
+                        </section>
+                    )}
                 </div>
 
                 {tutor && (
                     <aside className="space-y-3 self-start">
                         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                            Your tutor
+                            {isOwnSession ? "Tutor (you)" : isTutor ? "Tutor" : "Your tutor"}
                         </h2>
                         <UserCard user={tutor} />
                     </aside>

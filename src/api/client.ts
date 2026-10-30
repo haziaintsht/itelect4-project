@@ -3,7 +3,9 @@ import type {
     ApiBooking,
     ApiSession,
     AuthResponse,
+    BookingStatus,
     NewBooking,
+    NewSession,
     StudyPlan,
     UserRole,
 } from "../types/index";
@@ -29,15 +31,20 @@ async function failure(res: Response, fallback: string): Promise<Error> {
     return new Error(message ?? fallback);
 }
 
+interface RequestOptions {
+    method?: "GET" | "POST" | "PATCH" | "DELETE";
+    body?: unknown;
+}
+
 // Every call goes through here: JSON body, Bearer token when logged in,
 // and the API's own error message when the response is not ok.
 async function request<T>(
     path: string,
     fallback: string,
-    body?: unknown
+    { body, method = body === undefined ? "GET" : "POST" }: RequestOptions = {}
 ): Promise<T> {
     const res = await fetch(`${API_URL}${path}`, {
-        method: body === undefined ? "GET" : "POST",
+        method,
         headers: {
             ...(body === undefined ? {} : { "Content-Type": "application/json" }),
             ...authHeaders(),
@@ -47,11 +54,14 @@ async function request<T>(
     if (!res.ok) {
         throw await failure(res, fallback);
     }
-    return res.json();
+    // 204 No Content (DELETE) has no body to parse.
+    return res.status === 204 ? (undefined as T) : res.json();
 }
 
 export function login(email: string, password: string): Promise<AuthResponse> {
-    return request("/api/auth/login", "Login failed. Try again.", { email, password });
+    return request("/api/auth/login", "Login failed. Try again.", {
+        body: { email, password },
+    });
 }
 
 export function register(
@@ -61,10 +71,7 @@ export function register(
     role: UserRole
 ): Promise<AuthResponse> {
     return request("/api/auth/register", "Registration failed. Try again.", {
-        name,
-        email,
-        password,
-        role,
+        body: { name, email, password, role },
     });
 }
 
@@ -81,9 +88,34 @@ export function fetchBookings(): Promise<ApiBooking[]> {
 }
 
 export function createBooking(newBooking: NewBooking): Promise<ApiBooking> {
-    return request("/api/bookings", "Could not save the booking", newBooking);
+    return request("/api/bookings", "Could not save the booking", { body: newBooking });
+}
+
+export function updateBookingStatus(
+    id: string,
+    status: BookingStatus
+): Promise<ApiBooking> {
+    return request(`/api/bookings/${id}`, "Could not update the booking", {
+        method: "PATCH",
+        body: { status },
+    });
+}
+
+export function deleteBooking(id: string): Promise<void> {
+    return request(`/api/bookings/${id}`, "Could not remove the booking", {
+        method: "DELETE",
+    });
+}
+
+// The reply's tutor is a bare id (not populated), so only id/title are typed.
+export function createSession(
+    newSession: NewSession
+): Promise<Pick<ApiSession, "id" | "title">> {
+    return request("/api/sessions", "Could not create the session", { body: newSession });
 }
 
 export function askAi(prompt: string): Promise<StudyPlan> {
-    return request("/api/ai", "The Study Planner could not answer. Try again.", { prompt });
+    return request("/api/ai", "The Study Planner could not answer. Try again.", {
+        body: { prompt },
+    });
 }

@@ -7,7 +7,10 @@ live activity counter, and an AI Study Planner powered by Google Gemini.
 
 ## Project Highlights
 - **Core Entities**: `User`, `Session`, and `Booking`
-- **Roles**: `tutor` and `tutee`
+- **Roles**: `tutor` and `tutee`, each with its own screens after login:
+  - **Tutee**: Bookings (request a session, follow its status) and the Study Planner
+  - **Tutor**: Requests (confirm, decline, mark completed) and My sessions (create the sessions you teach)
+  - `RoleRoute` sends a logged-in user with the wrong role back to the dashboard
 - **Booking Lifecycle**: `requested -> confirmed -> completed`
 - **Real accounts**: register and log in with email + password; the backend signs a JWT
 - **Live Feature**: automatic activity counter updates

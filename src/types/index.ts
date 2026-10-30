@@ -66,6 +66,11 @@ export type ApiBooking = Omit<
 
 export type NewBooking = { session: string; note: string };
 
+export type NewSession = Pick<
+    Session,
+    "title" | "subject" | "description" | "sessionType" | "meetingLink"
+>;
+
 export type AuthUser = Pick<User, "id" | "name" | "email" | "role">;
 
 export interface AuthResponse {

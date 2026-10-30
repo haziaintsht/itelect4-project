@@ -47,7 +47,7 @@ function LoginPage() {
                 : await login(email, password);
             setAuth(auth);
             queryClient.removeQueries({ queryKey: ["bookings"] });
-            navigate("/bookings");
+            navigate(auth.user.role === UserRole.TUTOR ? "/requests" : "/bookings");
         } catch (err: unknown) {
             setError(
                 err instanceof Error ? err.message : "Something went wrong. Try again."
@@ -80,7 +80,7 @@ function LoginPage() {
                 <p className="mt-1 text-sm text-muted-foreground">
                     {isRegister
                         ? "Join as a tutee to get help, or as a tutor to teach."
-                        : "Log in to request and track your bookings."}
+                        : "Log in to book sessions, or to manage the ones you teach."}
                 </p>
             </div>
 

@@ -1,22 +1,40 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, ArrowRight, BookOpen, CalendarCheck, Search, Send, Users } from "lucide-react";
+import {
+    Activity,
+    ArrowRight,
+    BookOpen,
+    CalendarCheck,
+    CircleCheckBig,
+    Inbox,
+    Plus,
+    Presentation,
+    Search,
+    Send,
+    Users,
+} from "lucide-react";
 import SessionCard from "../components/SessionCard";
 import UserCard from "../components/UserCard";
 import EmptyState from "../components/EmptyState";
 import useToggle from "../hooks/useToggle";
 import useAuthStore from "../store/authStore";
-import { fetchSessions } from "../api/client";
-import { UserRole } from "../types/index";
-import type { ApiSession, User } from "../types/index";
+import { fetchBookings, fetchSessions } from "../api/client";
+import { BookingStatus, UserRole } from "../types/index";
+import type { ApiBooking, ApiSession, User } from "../types/index";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const STEPS = [
+const TUTEE_STEPS = [
     { icon: Search, title: "Find a session", text: "Browse sessions by title or subject." },
     { icon: Send, title: "Request a booking", text: "Tell the tutor what you need help with." },
     { icon: CalendarCheck, title: "Learn together", text: "Track it from requested to completed." },
+];
+
+const TUTOR_STEPS = [
+    { icon: Plus, title: "Create a session", text: "Say what you teach and how you meet." },
+    { icon: Inbox, title: "Review requests", text: "Confirm the tutees you can help." },
+    { icon: CircleCheckBig, title: "Teach and complete", text: "Mark each booking completed after you meet." },
 ];
 
 function DashboardPage() {
@@ -24,6 +42,8 @@ function DashboardPage() {
     const [showDetails, toggleDetails] = useToggle(false);
     const [liveCount, setLiveCount] = useState<number>(2);
     const userName = useAuthStore((state) => state.user?.name ?? null);
+    const userId = useAuthStore((state) => state.user?.id);
+    const isTutor = useAuthStore((state) => state.user?.role === UserRole.TUTOR);
 
     useEffect(() => {
         const interval = window.setInterval(() => {
@@ -36,6 +56,12 @@ function DashboardPage() {
     const { data: sessions, isPending } = useQuery<ApiSession[]>({
         queryKey: ["sessions"],
         queryFn: fetchSessions,
+    });
+
+    const { data: bookings, isPending: bookingsPending } = useQuery<ApiBooking[]>({
+        queryKey: ["bookings"],
+        queryFn: fetchBookings,
+        enabled: isTutor,
     });
 
     const tutors = useMemo(() => {
@@ -65,11 +91,23 @@ function DashboardPage() {
         });
     }, [sessions]);
 
-    const stats = [
-        { label: "Sessions available", value: sessions?.length ?? 0, hint: "Open for booking", icon: BookOpen, live: false },
-        { label: "Tutors", value: tutors.length, hint: "Peers ready to help", icon: Users, live: false },
-        { label: "Live activity", value: liveCount, hint: "New tutor requests", icon: Activity, live: true },
-    ];
+    const requestsToMe = (bookings ?? []).filter((b) => b.tutor?.id === userId);
+    const countByStatus = (status: BookingStatus): number =>
+        requestsToMe.filter((b) => b.status === status).length;
+
+    const stats = isTutor
+        ? [
+              { label: "Pending requests", value: countByStatus(BookingStatus.REQUESTED), hint: "Waiting for you to confirm", icon: Inbox, live: false },
+              { label: "My sessions", value: (sessions ?? []).filter((s) => s.tutor?.id === userId).length, hint: "Open for booking", icon: Presentation, live: false },
+              { label: "Completed", value: countByStatus(BookingStatus.COMPLETED), hint: "Sessions you have taught", icon: CircleCheckBig, live: false },
+          ]
+        : [
+              { label: "Sessions available", value: sessions?.length ?? 0, hint: "Open for booking", icon: BookOpen, live: false },
+              { label: "Tutors", value: tutors.length, hint: "Peers ready to help", icon: Users, live: false },
+              { label: "Live activity", value: liveCount, hint: "New tutor requests", icon: Activity, live: true },
+          ];
+    const statsPending = isPending || (isTutor && bookingsPending);
+    const steps = isTutor ? TUTOR_STEPS : TUTEE_STEPS;
 
     const firstName = userName?.split(" ")[0];
 
@@ -87,21 +125,34 @@ function DashboardPage() {
                     {firstName ? `Welcome back, ${firstName}!` : "Learn it faster with a peer tutor."}
                 </h1>
                 <p className="mt-3 max-w-xl text-muted-foreground">
-                    Browse sessions run by fellow students, send a booking request, and
-                    follow it from requested to completed.
+                    {isTutor
+                        ? "Review booking requests from tutees, confirm the ones you can take, and keep your sessions up to date."
+                        : "Browse sessions run by fellow students, send a booking request, and follow it from requested to completed."}
                 </p>
-                <div className="mt-6 flex flex-wrap gap-3">
-                    <Link to="/sessions" className={cn(buttonVariants(), "h-10 px-4")}>
-                        Browse sessions
-                        <ArrowRight />
-                    </Link>
-                    <Link
-                        to={userName ? "/bookings" : "/login"}
-                        className={cn(buttonVariants({ variant: "outline" }), "h-10 px-4")}
-                    >
-                        {userName ? "My bookings" : "Log in or register"}
-                    </Link>
-                </div>
+                {isTutor ? (
+                    <div className="mt-6 flex flex-wrap gap-3">
+                        <Link to="/requests" className={cn(buttonVariants(), "h-10 px-4")}>
+                            Review requests
+                            <ArrowRight />
+                        </Link>
+                        <Link to="/my-sessions" className={cn(buttonVariants({ variant: "outline" }), "h-10 px-4")}>
+                            Create a session
+                        </Link>
+                    </div>
+                ) : (
+                    <div className="mt-6 flex flex-wrap gap-3">
+                        <Link to="/sessions" className={cn(buttonVariants(), "h-10 px-4")}>
+                            Browse sessions
+                            <ArrowRight />
+                        </Link>
+                        <Link
+                            to={userName ? "/bookings" : "/login"}
+                            className={cn(buttonVariants({ variant: "outline" }), "h-10 px-4")}
+                        >
+                            {userName ? "My bookings" : "Log in or register"}
+                        </Link>
+                    </div>
+                )}
             </section>
 
             <section className="grid gap-4 sm:grid-cols-3">
@@ -114,7 +165,7 @@ function DashboardPage() {
                             </span>
                         </div>
                         <p className="mt-3 text-3xl font-bold text-foreground">
-                            {isPending && !live ? "–" : value}
+                            {statsPending && !live ? "–" : value}
                         </p>
                         <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                             {live && (
@@ -159,7 +210,7 @@ function DashboardPage() {
                 <div className="rounded-2xl border bg-card p-6 shadow-sm">
                     <h2 className="font-semibold text-foreground">How it works</h2>
                     <ol className="mt-5 space-y-5">
-                        {STEPS.map(({ icon: Icon, title, text }, index) => (
+                        {steps.map(({ icon: Icon, title, text }, index) => (
                             <li key={title} className="flex gap-3">
                                 <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-primary">
                                     <Icon className="size-4" />
