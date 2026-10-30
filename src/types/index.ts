@@ -1,4 +1,3 @@
-// ===== ENUMS =====
 export enum UserRole {
     TUTOR = "tutor",
     TUTEE = "tutee"
@@ -15,7 +14,6 @@ export enum SessionType {
     GROUP = "group"
 }
 
-// ===== INTERFACES (The 3 Core Entities) =====
 export interface User {
     id: string;
     name: string;
@@ -49,38 +47,38 @@ export interface Booking {
     note: string;
 }
 
-// ===== TYPE ALIASES & UNIONS =====
-export type ID = number | string;
-export type StringOrNumber = string | number;
+// What the API sends back: ids are strings, dates arrive as ISO strings,
+// and the tutor/tutee/session references are populated objects.
+export type ApiSession = Omit<Session, "createdAt" | "tutorId" | "tuteeId"> & {
+    createdAt: string;
+    tutor: Pick<User, "id" | "name" | "email"> | null;
+};
 
-// ===== GENERIC INTERFACE =====
-export interface ApiResponse<T> {
-    success: boolean;
-    data: T;
-    message?: string;
+export type ApiBooking = Omit<
+    Booking,
+    "sessionId" | "tuteeId" | "tutorId" | "requestedAt"
+> & {
+    session: Pick<Session, "id" | "title" | "subject"> | null;
+    tutee: Pick<User, "id" | "name"> | null;
+    tutor: Pick<User, "id" | "name"> | null;
+    createdAt: string;
+};
+
+export type NewBooking = { session: string; note: string };
+
+export type AuthUser = Pick<User, "id" | "name" | "email" | "role">;
+
+export interface AuthResponse {
+    token: string;
+    user: AuthUser;
 }
 
-// ===== UTILITY TYPES =====
-export type SessionUpdate = Partial<Session>;
-export type PublicTutorView = Omit<User, "email">;
-export type StatusCounts = Record<BookingStatus, number>;
+// Mirrors studyPlanSchema in itelect4-backend/src/schemas/studyPlan.ts.
+export type StudyLevel = "beginner" | "intermediate" | "advanced";
 
-// ===== API SHAPES (SESSION 7) =====
-// JSON has no Date and MongoDB writes ids as ObjectIds, so what the API
-// hands back is NOT the Session/Booking shape above. Both API types are
-// DERIVED from the core entities, which stay the single source of truth.
-// Sessions come back with `tutor` populated (name, email) because the
-// backend runs .populate("tutor", "name email") on every session query.
-export type ApiSession = Omit<Session, "id" | "createdAt" | "tutorId"> & {
-    id: string; // MongoDB ObjectId as a string
-    createdAt: string; // an ISO string, never a Date object
-    tutor?: { name: string; email: string }; // populated by the backend
-};
-
-export type ApiBooking = Omit<Booking, "id" | "requestedAt"> & {
-    id: string;
-    requestedAt: string; // an ISO string, never a Date object
-};
-
-// What we SEND when creating one. No id yet -- the server makes it.
-export type NewBooking = Omit<ApiBooking, "id">;
+export interface StudyPlan {
+    summary: string;
+    focusTopics: string[];
+    level: StudyLevel;
+    suggestedSubject: string;
+}

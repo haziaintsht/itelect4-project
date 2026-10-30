@@ -1,97 +1,89 @@
-// src/api/client.ts
-// Every call to the backend API lives in this one file.
-// API_URL comes from Vite env (VITE_API_URL) or falls back to localhost:4000.
-import type { ApiSession, ApiBooking, NewBooking } from "../types/index";
+import useAuthStore from "../store/authStore";
+import type {
+    ApiBooking,
+    ApiSession,
+    AuthResponse,
+    NewBooking,
+    StudyPlan,
+    UserRole,
+} from "../types/index";
 
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = (
+    import.meta.env.VITE_API_URL || "http://localhost:4000"
+).replace(/\/+$/, "");
 
-// Reads the JWT from localStorage and attaches it as a Bearer header.
-// Returns empty headers when no token exists (public routes like sessions).
-function authHeaders(): HeadersInit {
-  if (typeof localStorage === "undefined") return {};
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
+function authHeaders(): Record<string, string> {
+    const { token } = useAuthStore.getState();
+    return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-// POST /api/auth/login -> { token, user }
-export async function login(
-  email: string,
-  password: string
-): Promise<{ token: string; user: { id: string; name: string; email: string; role: string } }> {
-  const res = await fetch(`${API_URL}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!res.ok) {
-    throw new Error("Invalid email or password");
-  }
-  return res.json();
+async function failure(res: Response, fallback: string): Promise<Error> {
+    if (res.status === 401 && useAuthStore.getState().token !== null) {
+        useAuthStore.getState().logout();
+    }
+    const body = (await res.json().catch(() => null)) as {
+        message?: string;
+        errors?: string[];
+    } | null;
+    const message = body?.errors?.length ? body.errors.join(" ") : body?.message;
+    return new Error(message ?? fallback);
 }
 
-// POST /api/auth/register -> { token, user }
-export async function register(
-  name: string,
-  email: string,
-  password: string,
-  role?: string
-): Promise<{ token: string; user: { id: string; name: string; email: string; role: string } }> {
-  const res = await fetch(`${API_URL}/api/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password, role }),
-  });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: "Registration failed" }));
-    throw new Error(error.message || "Registration failed");
-  }
-  return res.json();
-}
-
-// GET /api/sessions -> the whole list
-export async function fetchSessions(): Promise<ApiSession[]> {
-    const res = await fetch(`${API_URL}/api/sessions`, {
-        headers: authHeaders(),
+// Every call goes through here: JSON body, Bearer token when logged in,
+// and the API's own error message when the response is not ok.
+async function request<T>(
+    path: string,
+    fallback: string,
+    body?: unknown
+): Promise<T> {
+    const res = await fetch(`${API_URL}${path}`, {
+        method: body === undefined ? "GET" : "POST",
+        headers: {
+            ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+            ...authHeaders(),
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
     });
     if (!res.ok) {
-        throw new Error("Could not load sessions");
+        throw await failure(res, fallback);
     }
     return res.json();
 }
 
-// GET /api/sessions/:id -> one session
-export async function fetchSessionById(id: string): Promise<ApiSession> {
-    const res = await fetch(`${API_URL}/api/sessions/${id}`, {
-        headers: authHeaders(),
-    });
-    if (!res.ok) {
-        throw new Error(`Could not load session ${id}`);
-    }
-    return res.json();
+export function login(email: string, password: string): Promise<AuthResponse> {
+    return request("/api/auth/login", "Login failed. Try again.", { email, password });
 }
 
-// GET /api/bookings -> the whole list (filtered on the client)
-export async function fetchBookings(): Promise<ApiBooking[]> {
-    const res = await fetch(`${API_URL}/api/bookings`, {
-        headers: authHeaders(),
+export function register(
+    name: string,
+    email: string,
+    password: string,
+    role: UserRole
+): Promise<AuthResponse> {
+    return request("/api/auth/register", "Registration failed. Try again.", {
+        name,
+        email,
+        password,
+        role,
     });
-    if (!res.ok) {
-        throw new Error("Could not load bookings");
-    }
-    return res.json();
 }
 
-// POST /api/bookings -> the row the server saved, with the id it made
-export async function createBooking(
-    newBooking: NewBooking
-): Promise<ApiBooking> {
-    const res = await fetch(`${API_URL}/api/bookings`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify(newBooking),
-    });
-    if (!res.ok) {
-        throw new Error("Could not save the booking");
-    }
-    return res.json();
+export function fetchSessions(): Promise<ApiSession[]> {
+    return request("/api/sessions", "Could not load sessions");
+}
+
+export function fetchSessionById(id: string): Promise<ApiSession> {
+    return request(`/api/sessions/${id}`, `Could not load session ${id}`);
+}
+
+export function fetchBookings(): Promise<ApiBooking[]> {
+    return request("/api/bookings", "Could not load bookings");
+}
+
+export function createBooking(newBooking: NewBooking): Promise<ApiBooking> {
+    return request("/api/bookings", "Could not save the booking", newBooking);
+}
+
+export function askAi(prompt: string): Promise<StudyPlan> {
+    return request("/api/ai", "The Study Planner could not answer. Try again.", { prompt });
 }

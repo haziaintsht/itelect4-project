@@ -1,25 +1,24 @@
-// src/pages/SessionsPage.tsx
-// SESSION 7: the three useState calls, the useEffect and the setTimeout
-// are gone -- useQuery owns loading, caching and refetching now. The
-// search box reads and writes the uiStore, not local state.
 import React, { useRef } from "react";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import ComplaintCard from "../components/ComplaintCard";
+import { Crosshair, Search, SearchX } from "lucide-react";
+import SessionCard from "../components/SessionCard";
+import PageHeader from "../components/PageHeader";
+import ErrorAlert from "../components/ErrorAlert";
+import EmptyState from "../components/EmptyState";
 import usePrevious from "../hooks/usePrevious";
 import useUiStore from "../store/uiStore";
 import { fetchSessions } from "../api/client";
 import type { ApiSession } from "../types/index";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 function SessionsPage() {
-    // The search box now reads and writes the store, not local state
     const searchTerm = useUiStore((state) => state.searchTerm);
     const setSearchTerm = useUiStore((state) => state.setSearchTerm);
     const previousSearch = usePrevious(searchTerm);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
-    // These four lines replace ALL of Session 6's fetching state
     const { data, isPending, isError, error } = useQuery<ApiSession[]>({
         queryKey: ["sessions"],
         queryFn: fetchSessions,
@@ -33,75 +32,105 @@ function SessionsPage() {
         searchInputRef.current?.focus();
     };
 
-    if (isPending) {
-        return <div className="animate-pulse rounded-3xl bg-white p-8 text-slate-500 dark:bg-slate-900 dark:text-slate-400">Loading sessions...</div>;
-    }
+    const header = (
+        <PageHeader
+            eyebrow="Browse"
+            title="Tutoring sessions"
+            description="Find a session that matches what you're studying, then open it to meet the tutor and book."
+        />
+    );
 
-    if (isError) {
+    if (isPending) {
         return (
-            <div className="rounded-3xl bg-red-50 p-8 text-red-700 dark:bg-red-900 dark:text-red-200">
-                {error?.message ?? "Could not load sessions."}
+            <div className="space-y-8">
+                {header}
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {[1, 2, 3].map((n) => (
+                        <div key={n} className="h-56 animate-pulse rounded-2xl bg-muted" />
+                    ))}
+                </div>
             </div>
         );
     }
 
-    // Below this line data is ApiSession[], never undefined
+    if (isError) {
+        return (
+            <div className="space-y-8">
+                {header}
+                <ErrorAlert message={error?.message ?? "Could not load sessions."} />
+            </div>
+        );
+    }
+
     const filteredSessions = data.filter((session) =>
         session.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         session.subject.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div className="mx-auto max-w-7xl space-y-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-950 dark:text-slate-100">Sessions</h2>
-                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Browse and book a tutoring session.</p>
-                </div>
-            </div>
+        <div className="space-y-8">
+            {header}
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="rounded-3xl border border-slate-200 bg-slate-100 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                    <p className="text-sm text-slate-600 dark:text-slate-300">Search sessions</p>
-                    <div className="mt-3 flex gap-3">
+            <div className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
+                <div className="flex gap-2">
+                    <div className="relative flex-1">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             ref={searchInputRef}
                             value={searchTerm}
                             onChange={handleSearchChange}
-                            placeholder="Search sessions..."
-                            className="w-full"
+                            placeholder="Search by title or subject..."
+                            aria-label="Search sessions"
+                            className="h-10 pl-9"
                         />
-                        <button
-                            onClick={focusSearch}
-                            className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-950 dark:hover:bg-slate-300"
-                        >
-                            Focus
-                        </button>
                     </div>
+                    <Button variant="outline" className="h-10 px-3" onClick={focusSearch}>
+                        <Crosshair />
+                        Focus
+                    </Button>
                 </div>
-                <div className="rounded-3xl border border-slate-200 bg-slate-100 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                    <p className="text-sm text-slate-600 dark:text-slate-300">Search status</p>
-                    <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+                    <span>
+                        Showing {filteredSessions.length} of {data.length} session(s)
+                    </span>
+                    <span>
                         {previousSearch !== undefined && previousSearch !== searchTerm
                             ? `Previous search: "${previousSearch}"`
-                            : "No previous search yet."}
-                    </p>
+                            : "Type to filter the list."}
+                    </span>
                 </div>
             </div>
 
-            <section className="space-y-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <h2 className="text-xl font-semibold text-slate-950 dark:text-slate-100">Available Sessions</h2>
-                    <span className="text-sm text-slate-500 dark:text-slate-400">{filteredSessions.length} session(s) ready</span>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
+            {filteredSessions.length === 0 ? (
+                <EmptyState
+                    icon={SearchX}
+                    title="No sessions found"
+                    description={
+                        searchTerm
+                            ? `Nothing matches "${searchTerm}". Try a different title or subject.`
+                            : "There are no sessions yet. Check back soon."
+                    }
+                    action={
+                        searchTerm ? (
+                            <Button variant="outline" onClick={() => setSearchTerm("")}>
+                                Clear search
+                            </Button>
+                        ) : undefined
+                    }
+                />
+            ) : (
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {filteredSessions.map((session) => (
-                        <Link key={session.id} to={`/sessions/${session.id}`}>
-                            <ComplaintCard session={session} onSelect={() => {}} variant="compact" />
+                        <Link
+                            key={session.id}
+                            to={`/sessions/${session.id}`}
+                            className="rounded-2xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
+                        >
+                            <SessionCard session={session} />
                         </Link>
                     ))}
                 </div>
-            </section>
+            )}
         </div>
     );
 }

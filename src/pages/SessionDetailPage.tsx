@@ -1,15 +1,20 @@
 import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, CalendarDays, CalendarPlus, Sparkles, User, Users, Video } from "lucide-react";
 import StatusBadge from "../components/StatusBadge";
-import UserCard from "../components/Usercard";
+import UserCard from "../components/UserCard";
+import ErrorAlert from "../components/ErrorAlert";
 import { fetchSessionById, fetchBookings } from "../api/client";
-import { UserRole } from "../types/index";
-import type { ApiSession, ApiBooking } from "../types/index";
+import useAuthStore from "../store/authStore";
+import { SessionType, UserRole } from "../types/index";
+import type { ApiSession, ApiBooking, User as UserType } from "../types/index";
+import { buttonVariants } from "@/components/ui/button";
+import { cn, formatDate } from "@/lib/utils";
 
 function SessionDetailPage() {
     const { sessionId } = useParams<{ sessionId: string }>();
-    const navigate = useNavigate();
+    const token = useAuthStore((state) => state.token);
 
     const {
         data: session,
@@ -25,87 +30,152 @@ function SessionDetailPage() {
     const { data: allBookings } = useQuery<ApiBooking[]>({
         queryKey: ["bookings"],
         queryFn: fetchBookings,
+        enabled: token !== null,
     });
 
     const booking = (allBookings ?? []).find(
-        (b) => b.sessionId === session?.id
+        (b) => b.session?.id === session?.id
     );
 
-    // The backend populates tutor with { name, email } on every session.
-    const tutor = session?.tutor
-        ? { id: session.tutor.name, name: session.tutor.name, email: session.tutor.email, role: UserRole.TUTOR, bio: "", skills: [], isActive: true }
-        : undefined;
+    const tutor = useMemo<UserType | undefined>(
+        () =>
+            session?.tutor
+                ? {
+                      id: session.tutor.id,
+                      name: session.tutor.name,
+                      email: session.tutor.email,
+                      role: UserRole.TUTOR,
+                      bio: `Runs "${session.title}".`,
+                      skills: [session.subject],
+                      isActive: true,
+                  }
+                : undefined,
+        [session]
+    );
 
-    const generatedSuggestion = useMemo(() => {
-        if (session === undefined || tutor === undefined || booking === undefined) {
-            return "";
-        }
-        const topic = session.subject.toLowerCase();
-        const tutorName = tutor.name.split(" ")[0];
-        const note = booking.note.toLowerCase();
-
-        return `AI study tip: ${tutorName} suggests a focused ${topic} session that starts with a 5-minute review of the toughest concept, follows with one worked example, and ends with a quick practice quiz. Since the booking note says "${note}", the plan should emphasize confidence-building and clear step-by-step explanations.`;
-    }, [booking, session, tutor]);
+    const backLink = (
+        <Link to="/sessions" className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "-ml-2")}>
+            <ArrowLeft />
+            Back to sessions
+        </Link>
+    );
 
     if (isPending) {
-        return <div className="animate-pulse rounded-3xl bg-white p-8 text-slate-500 dark:bg-slate-900 dark:text-slate-400">Loading session...</div>;
-    }
-
-    if (isError) {
         return (
-            <div className="rounded-3xl bg-red-50 p-8 text-red-700 dark:bg-red-900 dark:text-red-200">
-                {error?.message ?? `No session found with id "${sessionId}".`}
+            <div className="space-y-6">
+                {backLink}
+                <div className="h-64 animate-pulse rounded-3xl bg-muted" />
             </div>
         );
     }
 
-    if (session === undefined) {
+    if (isError || session === undefined) {
         return (
-            <div className="rounded-3xl bg-red-50 p-8 text-red-700 dark:bg-red-900 dark:text-red-200">
-                No session found with id "{sessionId}".
+            <div className="space-y-6">
+                {backLink}
+                <ErrorAlert message={error?.message ?? `No session found with id "${sessionId}".`} />
             </div>
         );
     }
+
+    const isGroup = session.sessionType === SessionType.GROUP;
+    const tutorFirstName = tutor?.name.split(" ")[0] ?? "the tutor";
 
     return (
-        <div className="mx-auto max-w-3xl space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold text-slate-950 dark:text-slate-100">{session.title}</h2>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Subject: {session.subject}</p>
-            </div>
+        <div className="space-y-6">
+            {backLink}
 
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/40 dark:border-slate-700 dark:bg-slate-900">
-                <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">{session.description}</p>
-                <StatusBadge statusType={session.status}>
-                    <span className="ml-2 inline-block text-sm text-slate-500 dark:text-slate-400">
-                        Meeting type: {session.sessionType}
+            <section className="rounded-3xl border bg-card p-6 shadow-sm sm:p-8">
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-primary">
+                        {session.subject}
                     </span>
-                </StatusBadge>
-                {booking && (
-                    <div className="mt-4 rounded-3xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-                        <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Booking note</h4>
-                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{booking.note}</p>
-                    </div>
-                )}
+                    <StatusBadge statusType={session.status} />
+                </div>
+                <h1 className="mt-4 text-3xl font-bold tracking-tight text-foreground">
+                    {session.title}
+                </h1>
+                <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                        {isGroup ? <Users className="size-4" /> : <User className="size-4" />}
+                        {isGroup ? "Group session" : "One-on-one"}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <CalendarDays className="size-4" />
+                        Posted {formatDate(session.createdAt)}
+                    </span>
+                    {session.meetingLink && (
+                        <a
+                            href={session.meetingLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-1.5 text-primary hover:underline"
+                        >
+                            <Video className="size-4" />
+                            Meeting link
+                        </a>
+                    )}
+                </div>
+                <p className="mt-6 max-w-3xl leading-7 text-foreground/90">{session.description}</p>
+            </section>
+
+            <div className="grid gap-6 lg:grid-cols-3">
+                <div className="space-y-6 lg:col-span-2">
+                    {booking ? (
+                        <section className="rounded-2xl border bg-card p-6 shadow-sm">
+                            <div className="flex items-center justify-between gap-3">
+                                <h2 className="font-semibold text-foreground">Your booking</h2>
+                                <StatusBadge statusType={booking.status} />
+                            </div>
+                            <p className="mt-3 rounded-xl bg-muted p-3 text-sm leading-6 text-foreground">
+                                “{booking.note}”
+                            </p>
+                            <Link to="/bookings" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">
+                                See all my bookings
+                            </Link>
+                        </section>
+                    ) : (
+                        <section className="flex flex-col gap-4 rounded-2xl border bg-card p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h2 className="font-semibold text-foreground">Want help with this?</h2>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    Send {tutorFirstName} a booking request. It only takes a minute.
+                                </p>
+                            </div>
+                            <Link
+                                to={`/bookings?session=${session.id}`}
+                                className={cn(buttonVariants(), "h-10 shrink-0 px-4")}
+                            >
+                                <CalendarPlus />
+                                Book this session
+                            </Link>
+                        </section>
+                    )}
+
+                    <section className="rounded-2xl border border-primary/25 bg-accent p-6">
+                        <h2 className="flex items-center gap-2 text-sm font-semibold text-primary">
+                            <Sparkles className="size-4" />
+                            Not sure where to start?
+                        </h2>
+                        <p className="mt-2 text-sm leading-6 text-foreground">
+                            Describe what you are stuck on and the Study Planner will suggest
+                            the topics to focus on first.
+                        </p>
+                        <Link to="/study-plan" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
+                            Open the Study Planner
+                        </Link>
+                    </section>
+                </div>
+
                 {tutor && (
-                    <div className="mt-4 space-y-3">
-                        <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Assigned tutor</h4>
-                        <UserCard user={tutor} onSelect={() => {}} />
-                    </div>
-                )}
-                {generatedSuggestion && (
-                    <p className="mt-4 rounded-3xl bg-sky-50 px-4 py-3 text-sm text-slate-800 dark:bg-slate-800 dark:text-slate-200">
-                        {generatedSuggestion}
-                    </p>
+                    <aside className="space-y-3 self-start">
+                        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                            Your tutor
+                        </h2>
+                        <UserCard user={tutor} />
+                    </aside>
                 )}
             </div>
-
-            <button
-                onClick={() => navigate("/sessions")}
-                className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-slate-300"
-            >
-                Back to Sessions
-            </button>
         </div>
     );
 }
